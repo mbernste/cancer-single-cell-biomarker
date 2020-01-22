@@ -1,0 +1,47 @@
+#
+
+configfile: "config.json"
+
+rule all:
+    input:
+        '{}/gsea_results.tsv'.format(config['tmp_dir'])
+
+rule cluster_tumors:
+    output:
+        '{}/cluster_de_genes.json'.format(config['tmp_dir']),
+        '{}/cluster_fraction_biomarker.json'.format(config['tmp_dir'])
+    run:
+        shell(
+            'python cluster_and_de.py {} -r {} -o {}'.format(
+                config['biomarker'],
+                config['louvain_resolution'],
+                config['tmp_dir']
+            )
+        )
+
+rule gsea_per_cluster:
+    input:
+        clusters='{}/cluster_de_genes.json'.format(config['tmp_dir']),
+        fracs='{}/cluster_fraction_biomarker.json'.format(config['tmp_dir'])
+    output:
+        '{}/gsea_results.tsv'.format(config['tmp_dir'])        
+    run:
+        shell(
+            'python gsea.py {{input.clusters}} {{input.fracs}} {biomarker} -o {out}'.format(
+                biomarker=config['biomarker'],
+                out=config['tmp_dir']
+            )
+        )
+
+rule analyze_cluster_gsea:
+    input:
+        '{}/gsea_results.tsv'.format(config['tmp_dir'])
+    output:
+        '{}/common_GO_terms_heatmap.png'.format(config['out_dir'])
+    run:
+        shell(
+            'python analyze_cluster_gsea.py {{input}} -o {out}'.format(
+                out=config['out_dir']
+            )
+        )
+
