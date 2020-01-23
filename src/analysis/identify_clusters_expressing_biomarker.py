@@ -33,6 +33,8 @@ TUMORS = [
     'PJ032'
 ]
 
+FRAC_THRESH = 0.1
+
 #TUMORS = [
 #    'PJ030',
 #    'PJ035'
@@ -50,27 +52,79 @@ def main():
     parser.add_option("-r", "--resolution", help="Resolution")
     (options, args) = parser.parse_args()
 
-    gsea_f = args[0]
-    keep_clusters_f = args[1]
+    biomarker = args[0]
+    in_dir = args[1]
+    tumor_to_clust_to_de_genes_f = args[2]
     out_dir = options.out_dir
 
-    gsea_df = pd.read_csv(gsea_f, sep='\t')
-    keep_clusters_df = pd.read_csv(keep_clusters_f, sep='\t')
-    
-    tumor_clusts = [
-        (row['tumor'], row['cluster'])
-        for index, row in keep_clusters_df.iterrows()
-    ]
+    # Load data
+    with open(tumor_to_clust_to_de_genes_f, 'r') as f:
+        tumor_to_clust_to_de_genes = json.load(f)
 
-    gsea_df = gsea_df.set_index(['tumor', 'cluster'])
-    gsea_df = gsea_df.loc[tumor_clusts]
-    gsea_df = gsea_df.reset_index()
+    # Compute the fraction of 
+    tumor_to_clust_to_frac_expr = _fraction_of_cells_expressing_biomarker_per_cluster(
+        biomarker, 
+        in_dir  
+    )
 
-    print(gsea_df)
+    # Determine which clusters to keep
+    tumor_clusters = []
+    for tumor in TUMORS:
+        for clust, frac_nonzero in tumor_to_clust_to_frac_expr[tumor].items(): 
+            if frac_nonzero > FRAC_THRESH \
+                and biomarker in tumor_to_clust_to_de_genes[tumor][str(clust)]:
+                    tumor_clusters.append((tumor, str(clust)))
 
-    plot_heatmap(gsea_df, out_dir)
-    most_common_terms(gsea_df, out_dir)
+    # Write output
+    with open(join(out_dir, 'cluster_fraction_biomarker.json'), 'w') as f:
+        json.dump(
+            tumor_to_clust_to_frac_expr,
+            f, 
+            indent=4
+        )
+    df_kept_clusts = pd.DataFrame(
+        data=tumor_clusters,
+        columns=['tumor', 'cluster']
+    )
+    df_kept_clusts.to_csv(
+        join(out_dir, 'clusters_expressing_biomarker.tsv'), 
+        sep='\t'
+    )
 
+def _fraction_of_cells_expressing_biomarker_per_cluster(
+        biomarker, 
+        in_dir 
+    ):
+    tumor_to_clust_to_frac_expr = defaultdict(lambda: {})
+    for tumor in TUMORS:
+        print('Loading data for tumor {}...'.format(tumor))
+        counts, cells = load_GSE103224.counts_matrix_for_tumor(tumor)
+        print('done.')
+
+        cluster_df = pd.read_csv(
+            join(in_dir, '{}_clusters.tsv'.format(tumor)),
+            sep='\t'
+        )
+        ad = AnnData(
+            X=counts,
+            obs=pd.DataFrame(data=cells, columns=['cell']),
+            var=pd.DataFrame(
+                index=load_GSE103224.GENE_NAMES,
+                data=load_GSE103224.GENE_NAMES,
+                columns=['gene_name']
+            )
+        )
+        sc.pp.normalize_total(ad, target_sum=1e6)
+        sc.pp.log1p(ad)
+        biomarker_ind = load_GSE103224.GENE_NAMES.index(biomarker)
+        grouped = grouped = cluster_df.groupby('louvain') 
+        for clust, group in grouped:
+            indices = [int(x) for x in group.index]
+            clust_X = ad.X[indices]
+            biomarker_X = clust_X[:,biomarker_ind]
+            frac_nonzero = sum([1 for x in biomarker_X if x > 0]) / len(biomarker_X)
+            tumor_to_clust_to_frac_expr[tumor][clust] = frac_nonzero
+    return tumor_to_clust_to_frac_expr
 
 def plot_heatmap(gsea_df, out_dir):
     all_sig_terms = sorted(set(gsea_df['GO_term']))
@@ -89,10 +143,10 @@ def plot_heatmap(gsea_df, out_dir):
             for tumor_clust in tumor_clusts
         ]
         for term in all_sig_terms
-    ]
+    ]        
     heatmap_df = pd.DataFrame(
-        data=heatmap_da,
-        columns=tumor_clusts,
+        data=heatmap_da, 
+        columns=tumor_clusts, 
         index=all_sig_terms
     )
 
@@ -102,7 +156,6 @@ def plot_heatmap(gsea_df, out_dir):
         format='png',
         dpi=150
     )
-
 
 def most_common_terms(gsea_df, out_dir):
     term_to_tumor_clusts = defaultdict(lambda: set())
@@ -123,7 +176,7 @@ def most_common_terms(gsea_df, out_dir):
     #    {
     #        term: sorted(term_to_tumor_clusts[term])
     #        for term in top_50_common_terms
-    #    },
+    #    }, 
     #    indent=True
     #))
 
@@ -133,7 +186,8 @@ def most_common_terms(gsea_df, out_dir):
         reverse=True
     )
     top_50_common_terms = common_terms_by_tumor[:50]
-    with open(join(out_dir, 'most_common_GO_terms.json'), 'w') as f:
+
+    with open(join(out_dir, 'most_common_GO_terms.json'), 'w') as f: 
         json.dump(
             {
                 term: sorted(term_to_tumor_clusts[term])

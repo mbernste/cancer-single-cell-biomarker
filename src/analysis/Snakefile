@@ -1,47 +1,140 @@
 #
 
+TUMORS = [
+    'PJ016',
+    'PJ018',
+    'PJ048',
+    'PJ030',
+    'PJ025',
+    'PJ035',
+    'PJ017',
+    'PJ032'
+]
+
 configfile: "config.json"
 
 rule all:
     input:
-        '{}/gsea_results.tsv'.format(config['tmp_dir'])
+        '{out}/{biomarker}/common_GO_terms_heatmap.png'.format(
+            out=config['out_dir'],
+            biomarker=config['biomarker']
+        )
 
 rule cluster_tumors:
     output:
         '{}/cluster_de_genes.json'.format(config['tmp_dir']),
-        '{}/cluster_fraction_biomarker.json'.format(config['tmp_dir'])
+        expand(
+            '{tmp}/{{tumor}}_clusters.tsv'.format(
+                tmp=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
     run:
         shell(
-            'python cluster_and_de.py {} -r {} -o {}'.format(
-                config['biomarker'],
+            'python cluster_and_de.py -r {} -o {}'.format(
                 config['louvain_resolution'],
                 config['tmp_dir']
             )
         )
 
+
+rule identify_clusters_expressing_biomarker:
+    input:
+        clusts=expand(
+            '{tmp}/{{tumor}}_clusters.tsv'.format(
+                tmp=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        de_genes='{}/cluster_de_genes.json'.format(config['tmp_dir'])
+    output:
+        '{tmp}/{biomarker}/cluster_fraction_biomarker.json'.format(
+            tmp=config['tmp_dir'],
+            biomarker=config['biomarker']
+        ),
+        '{tmp}/{biomarker}/clusters_expressing_biomarker.tsv'.format(
+            tmp=config['tmp_dir'],
+            biomarker=config['biomarker']
+        )
+    run:
+        shell(
+            'mkdir -p {tmp}/{biomarker}'.format(
+                biomarker=config['biomarker'],
+                tmp=config['tmp_dir']
+            )
+        )
+        shell(
+            'python identify_clusters_expressing_biomarker.py {biomarker} {tmp} {{input.de_genes}} -o {tmp}/{biomarker}'.format(
+                biomarker=config['biomarker'],
+                tmp=config['tmp_dir']
+            )
+        )
+
+
 rule gsea_per_cluster:
     input:
-        clusters='{}/cluster_de_genes.json'.format(config['tmp_dir']),
-        fracs='{}/cluster_fraction_biomarker.json'.format(config['tmp_dir'])
+        '{}/cluster_de_genes.json'.format(config['tmp_dir'])
     output:
         '{}/gsea_results.tsv'.format(config['tmp_dir'])        
     run:
         shell(
-            'python gsea.py {{input.clusters}} {{input.fracs}} {biomarker} -o {out}'.format(
-                biomarker=config['biomarker'],
+            'python gsea.py {{input}} -o {out}'.format(
                 out=config['tmp_dir']
             )
         )
 
+
 rule analyze_cluster_gsea:
     input:
-        '{}/gsea_results.tsv'.format(config['tmp_dir'])
+        clusts='{tmp}/{biomarker}/clusters_expressing_biomarker.tsv'.format(
+            tmp=config['tmp_dir'],
+            biomarker=config['biomarker']
+        ),
+        gsea='{}/gsea_results.tsv'.format(config['tmp_dir'])
     output:
-        '{}/common_GO_terms_heatmap.png'.format(config['out_dir'])
+        '{out}/{biomarker}/common_GO_terms_heatmap.png'.format(
+            out=config['out_dir'],
+            biomarker=config['biomarker']
+        )
     run:
         shell(
-            'python analyze_cluster_gsea.py {{input}} -o {out}'.format(
+            'mkdir -p {out}/{biomarker}'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            )
+        ),
+        shell(
+            'python analyze_cluster_gsea.py {{input.gsea}} {{input.clusts}} -o {out}/{biomarker}'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            )
+        )
+
+
+rule plot_clusters:
+    input:
+        expand(
+            '{tmp}/{{tumor}}_clusters.tsv'.format(
+                tmp=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
+    output:
+        expand(
+            '{out}/{{tumor}}_PHATE_clusters.png'.format(
+                out=config['out_dir']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'python phate_color_by_cluster.py {tmp} -o {out}'.format(
+                tmp=config['tmp_dir'],
                 out=config['out_dir']
             )
         )
+
+# Common DE genes across clusters
+
+
 

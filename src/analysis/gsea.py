@@ -50,40 +50,28 @@ def main():
     (options, args) = parser.parse_args()
 
     de_genes_f = args[0]
-    frac_biomarker_f = args[1]
-    biomarker = args[2]
     out_dir = options.out_dir
 
     with open(de_genes_f, 'r') as f:
         tumor_to_cluster_to_de_genes = json.load(f)
-    with open(frac_biomarker_f, 'r') as f:
-        tumor_to_cluster_to_frac_nonzero = json.load(f)
 
     gsea_da = []
-    for tumor in tumor_to_cluster_to_de_genes:
-        clust_to_de_genes = tumor_to_cluster_to_de_genes[tumor]
-        clust_to_frac_nonzero = tumor_to_cluster_to_frac_nonzero[tumor]
-
-        print(clust_to_frac_nonzero)
-    
-        biomarker_clusts = []
-        for clust in clust_to_frac_nonzero:
+    for tumor, clust_to_de_genes in tumor_to_cluster_to_de_genes.items():
+        for clust in clust_to_de_genes:
             de_genes = clust_to_de_genes[clust]
-            if biomarker in set(de_genes) and clust_to_frac_nonzero[clust] > 0.1:
-                print('{} Found in cluster {}!'.format(biomarker, clust))
-                enr = gp.enrichr(
-                    gene_list=de_genes,
-                    gene_sets=GENE_SETS,
-                    no_plot=True,
-                    cutoff=0.05  # test dataset, use lower value from range(0,1)
-                )
-                enr.results = enr.results[enr.results["Adjusted P-value"] < GSEA_THRESH]
-                print(enr.results)
-                sig_terms = set(enr.results['Term'])
-                gsea_da += [
-                    (tumor, clust, term)
-                    for term in sig_terms
-                ]
+            enr = gp.enrichr(
+                gene_list=de_genes,
+                gene_sets=GENE_SETS,
+                no_plot=True,
+                cutoff=0.05  # test dataset, use lower value from range(0,1)
+            )
+            enr.results = enr.results[enr.results["Adjusted P-value"] < GSEA_THRESH]
+            print(enr.results)
+            sig_terms = set(enr.results['Term'])
+            gsea_da += [
+                (tumor, clust, term)
+                for term in sig_terms
+            ]
     gsea_df = pd.DataFrame(
         data=gsea_da,
         columns=['tumor', 'cluster', 'GO_term']
