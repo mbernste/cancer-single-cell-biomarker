@@ -76,8 +76,10 @@ def counts_matrix_for_cells(cells):
 
 
 def main():
-    cells = ['PJ016_4', 'PJ016_5', 'PJ016_6']
+    #cells = ['PJ016_4', 'PJ016_5', 'PJ016_6']
     #print(np.sum(counts_matrix_for_cells(cells), axis=1))
+    counts, X = counts_matrix_for_tumor('PJ018')
+    print(counts)
 
 if __name__ == '__main__':
     main()

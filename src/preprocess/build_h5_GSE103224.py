@@ -83,7 +83,7 @@ def main():
 
     print('Writing to H5 file...')
     with h5py.File(OUT_F, 'w') as f:
-        f.create_dataset('count', data=counts)
+        f.create_dataset('count', data=counts, compression="gzip")
         f.create_dataset('cell', data=np.array(cells))
         f.create_dataset('tumor', data=np.array(tumors))
         f.create_dataset('gene_id', data=np.array(the_genes))

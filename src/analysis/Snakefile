@@ -18,6 +18,12 @@ rule all:
         '{out}/{biomarker}/common_GO_terms_heatmap.png'.format(
             out=config['out_dir'],
             biomarker=config['biomarker']
+        ),
+        expand(
+            '{out}/{{tumor}}_PHATE_clusters.png'.format(
+                out=config['out_dir']
+            ),
+            tumor=TUMORS
         )
 
 rule cluster_tumors:
@@ -110,12 +116,32 @@ rule analyze_cluster_gsea:
             )
         )
 
+rule run_phate_per_tumor:
+    output:
+        expand(
+            '{out}/{{tumor}}_PHATE.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'python run_phate_per_tumor.py -o {}'.format(
+                config['tmp_dir']
+            )            
+        )
 
 rule plot_clusters:
     input:
         expand(
             '{tmp}/{{tumor}}_clusters.tsv'.format(
                 tmp=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        expand(
+            '{out}/{{tumor}}_PHATE.tsv'.format(
+                out=config['tmp_dir']
             ),
             tumor=TUMORS
         )
@@ -130,6 +156,29 @@ rule plot_clusters:
         shell(
             'python phate_color_by_cluster.py {tmp} -o {out}'.format(
                 tmp=config['tmp_dir'],
+                out=config['out_dir']
+            )
+        )
+
+rule plot_biomarker:
+    output:
+        expand(
+            '{out}/{biomarker}/{{tumor}}_PHATE_{biomarker}.png'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'mkdir -p {out}/{biomarker}'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            )
+        ),
+        shell(
+            'python phate_color_by_gene.py {biomarker} -o {out}/{biomarker}'.format(
+                biomarker=config['biomarker'],
                 out=config['out_dir']
             )
         )
