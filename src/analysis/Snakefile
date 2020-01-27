@@ -116,6 +116,28 @@ rule analyze_cluster_gsea:
             )
         )
 
+rule assign_cell_types:
+    output:
+        expand(
+            '{out}/{{tumor}}_predicted_cell_types.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        expand(
+            '{out}/{{tumor}}_predicted_cell_type_probs.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'Rscript assign_cell_types.R {data} {tmp} {data}/cell_type_markers.json'.format(
+                tmp=config['tmp_dir'],
+                data=config['data_dir']
+            )
+        )
+
 rule run_phate_per_tumor:
     output:
         expand(
