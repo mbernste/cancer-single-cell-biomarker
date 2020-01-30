@@ -13,6 +13,13 @@ TUMORS = [
 
 configfile: "config.json"
 
+rule final:
+    input:
+        '{out}/{biomarker}/common_GO_terms_heatmap.png'.format(
+            out=config['out_dir'],
+            biomarker=config['biomarker']
+        )
+
 rule all:
     input:
         '{out}/{biomarker}/common_GO_terms_heatmap.png'.format(
@@ -24,7 +31,30 @@ rule all:
                 out=config['out_dir']
             ),
             tumor=TUMORS
-        )
+        ),
+        expand(
+            '{out}/{{tumor}}_UMAP_clusters.png'.format(
+                out=config['out_dir']
+            ),
+            tumor=TUMORS
+        ),
+        expand(
+            '{out}/{biomarker}/{{tumor}}_PHATE_{biomarker}.png'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            ),
+            tumor=TUMORS
+        ),
+        expand(
+            '{out}/{biomarker}/{{tumor}}_UMAP_{biomarker}.png'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            ),
+            tumor=TUMORS
+        ),
+        '{}/all_tumors_PHATE.png'.format(config['out_dir']),
+        '{}/all_tumors_UMAP.png'.format(config['out_dir'])
+        
 
 rule cluster_tumors:
     output:
@@ -138,6 +168,55 @@ rule assign_cell_types:
             )
         )
 
+###########################################################
+#   Create dimensionality reduction plot of all tumors
+###########################################################
+rule run_phate_all_tumors:
+    output:
+        '{}/all_tumors_PHATE.tsv'.format(config['tmp_dir'])
+    run:
+        shell(
+            'python run_phate_all_tumors.py -o {}'.format(config['tmp_dir'])
+        )
+
+rule run_umap_all_tumors:
+    output:
+        '{}/all_tumors_UMAP.tsv'.format(config['tmp_dir'])
+    run:
+        shell(
+            'python run_umap_all_tumors.py -o {}'.format(config['tmp_dir'])
+        )
+
+rule plot_tumors_phate:
+    input:
+        '{}/all_tumors_PHATE.tsv'.format(config['tmp_dir'])
+    output:
+        '{}/all_tumors_PHATE.png'.format(config['out_dir'])
+    run:
+        shell(
+            'python dim_reduc_color_by_tumor.py {tmp} PHATE -o {out}'.format(
+                tmp=config['tmp_dir'],
+                out=config['out_dir']
+            )
+        )
+
+rule plot_tumors_umap:
+    input:
+        '{}/all_tumors_UMAP.tsv'.format(config['tmp_dir'])
+    output:
+        '{}/all_tumors_UMAP.png'.format(config['out_dir'])
+    run:
+        shell(
+            'python dim_reduc_color_by_tumor.py {tmp} UMAP -o {out}'.format(
+                tmp=config['tmp_dir'],
+                out=config['out_dir']
+            )
+        )
+
+###########################################################
+#   Create dimensionality reduction plots for each tumor
+###########################################################
+
 rule run_phate_per_tumor:
     output:
         expand(
@@ -153,7 +232,23 @@ rule run_phate_per_tumor:
             )            
         )
 
-rule plot_clusters:
+rule run_umap_per_tumor:
+    output:
+        expand(
+            '{out}/{{tumor}}_UMAP.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'python run_umap_per_tumor.py -o {}'.format(
+                config['tmp_dir']
+            )      
+        )
+
+
+rule plot_clusters_phate:
     input:
         expand(
             '{tmp}/{{tumor}}_clusters.tsv'.format(
@@ -176,13 +271,52 @@ rule plot_clusters:
         )
     run:
         shell(
-            'python phate_color_by_cluster.py {tmp} -o {out}'.format(
+            'python dim_reduc_color_by_cluster.py {tmp} PHATE -o {out}'.format(
                 tmp=config['tmp_dir'],
                 out=config['out_dir']
             )
         )
 
-rule plot_biomarker:
+rule plot_clusters_umap:
+    input:
+        expand(
+            '{tmp}/{{tumor}}_clusters.tsv'.format(
+                tmp=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        expand(
+            '{out}/{{tumor}}_UMAP.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        )
+    output:
+        expand(
+            '{out}/{{tumor}}_UMAP_clusters.png'.format(
+                out=config['out_dir']
+            ),
+            tumor=TUMORS
+        )
+    run:
+        shell(
+            'python dim_reduc_color_by_cluster.py {tmp} UMAP -o {out}'.format(
+                tmp=config['tmp_dir'],
+                out=config['out_dir']
+            )
+        )
+
+rule plot_biomarker_phate:
+    input:
+        expand(
+            '{out}/{{tumor}}_PHATE.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        '{out}/all_tumors_PHATE.tsv'.format(
+            out=config['tmp_dir']
+        )
     output:
         expand(
             '{out}/{biomarker}/{{tumor}}_PHATE_{biomarker}.png'.format(
@@ -190,6 +324,10 @@ rule plot_biomarker:
                 biomarker=config['biomarker']
             ),
             tumor=TUMORS
+        ),
+        '{out}/{biomarker}/all_tumors_PHATE_{biomarker}.png'.format(
+            out=config['out_dir'],
+            biomarker=config['biomarker']
         )
     run:
         shell(
@@ -199,12 +337,66 @@ rule plot_biomarker:
             )
         ),
         shell(
-            'python phate_color_by_gene.py {biomarker} -o {out}/{biomarker}'.format(
+            'python dim_reduc_color_by_gene.py {biomarker} {tmp} PHATE -o {out}/{biomarker}'.format(
                 biomarker=config['biomarker'],
-                out=config['out_dir']
+                out=config['out_dir'],
+                tmp=config['tmp_dir']
+            )
+        ),
+        shell(
+            'python dim_reduc_color_by_gene_all_tumors.py {biomarker} {tmp} PHATE -o {out}/{biomarker}'.format(
+                biomarker=config['biomarker'],
+                out=config['out_dir'],
+                tmp=config['tmp_dir']
             )
         )
 
+rule plot_biomarker_umap:
+    input:
+        expand(
+            '{out}/{{tumor}}_UMAP.tsv'.format(
+                out=config['tmp_dir']
+            ),
+            tumor=TUMORS
+        ),
+        '{out}/all_tumors_UMAP.tsv'.format(
+            out=config['tmp_dir']
+        )
+    output:
+        expand(
+            '{out}/{biomarker}/{{tumor}}_UMAP_{biomarker}.png'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            ),
+            tumor=TUMORS
+        ),
+        '{out}/{biomarker}/all_tumors_UMAP_{biomarker}.png'.format(
+            out=config['out_dir'],
+            biomarker=config['biomarker']
+        )
+    run:
+        shell(
+            'mkdir -p {out}/{biomarker}'.format(
+                out=config['out_dir'],
+                biomarker=config['biomarker']
+            )
+        ),
+        shell(
+            'python dim_reduc_color_by_gene.py {biomarker} {tmp} UMAP -o {out}/{biomarker}'.format(
+                biomarker=config['biomarker'],
+                out=config['out_dir'],
+                tmp=config['tmp_dir']
+            )
+        ),
+        shell(
+            'python dim_reduc_color_by_gene_all_tumors.py {biomarker} {tmp} UMAP -o {out}/{biomarker}'.format(
+                biomarker=config['biomarker'],
+                out=config['out_dir'],
+                tmp=config['tmp_dir']
+            )
+        )
+
+    
 # Common DE genes across clusters
 
 
