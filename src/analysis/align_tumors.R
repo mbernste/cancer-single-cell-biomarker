@@ -35,7 +35,7 @@ for (tumor in TUMORS) {
     rownames(tumor_counts) <- genes
     colnames(tumor_counts) <- tumor_cells                            
 
-    sos[[tumor]] <- CreateSeuratObject(
+    so <- CreateSeuratObject(
         tumor_counts,
         project = tumor,
         assay = "RNA",
@@ -45,6 +45,8 @@ for (tumor in TUMORS) {
         names.delim = NULL,
         meta.data = NULL
     )
+    so <- NormalizeData(so)
+    sos[[tumor]] <- so
 }
 
 anchors <- FindIntegrationAnchors(object.list = sos, dims = 1:50)
