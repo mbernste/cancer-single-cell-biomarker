@@ -41,7 +41,7 @@ TUMORS = [
 GENE_SETS = ['GO_Biological_Process_2018']
 #GENE_SETS = ['GO_Molecular_Function_2018']
 
-GSEA_THRESH = 0.05
+GSEA_THRESH = 0.01
 
 def main():
     usage = "" # TODO
@@ -69,14 +69,14 @@ def main():
             print(enr.results)
             sig_terms = set(enr.results['Term'])
             gsea_da += [
-                (tumor, clust, term)
+                ('{}_{}'.format(tumor, clust), term)
                 for term in sig_terms
             ]
     gsea_df = pd.DataFrame(
         data=gsea_da,
-        columns=['tumor', 'cluster', 'GO_term']
+        columns=['tumor_cluster', 'GO_term']
     )
-    gsea_df.to_csv(join(out_dir, 'gsea_results.tsv'), sep='\t')
+    gsea_df.to_csv(join(out_dir, 'gsea_results.tsv'), sep='\t', index=False)
 
 
 if __name__ == '__main__':

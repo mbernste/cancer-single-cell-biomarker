@@ -7,8 +7,8 @@ library(dplyr)
 library(shinycssloaders)
 library(RColorBrewer)
 
-#TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
-TUMORS = c('PJ048')
+TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
+#TUMORS = c('PJ048')
 DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/data'
 TMP_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp'
 
@@ -30,12 +30,36 @@ gsea_df <- read.csv(
     header = TRUE
 )
 
+gsea_full_df <- read.csv(
+    paste0(TMP_DIR, "/gsea_binary_matrix.tsv"),
+    sep = '\t',
+    header = TRUE,
+    row.names = 1
+)
+
 # Load tumor-cluster 'expression' data
 tumor_clust_expr_df <- read.csv(
     paste0(TMP_DIR, "/tumor_cluster_gene_expression.tsv"),
     sep = '\t',
     header = TRUE
 )
+
+tumor_clusts <- select(filter(tumor_clust_expr_df, tumor_clust_expr_df['SLC16A3'] > 0), c('tumor_cluster'))
+print(tumor_clusts)
+select_cols <- c() 
+for (tc in colnames(gsea_full_df)) {
+    print(tc)
+    print(tc %in% tumor_clusts[['tumor_cluster']])
+    if(tc %in% tumor_clusts[['tumor_cluster']]) {
+        select_cols <- c(select_cols, 1.0) 
+    }
+    else { 
+        select_cols <- c(select_cols, 0.0)
+    }
+}
+print(select_cols)
+print(length(select_cols))
+print(length(colnames(gsea_full_df)))
 
 # Load each tumor's expression data and dimension reduction data
 tumor_dfs <- c()
@@ -53,18 +77,35 @@ for (tumor in TUMORS) {
     colnames(tumor_counts) <- genes
     
     # Read dimension reduction
-    df <- read.csv(
+    phate_df <- read.csv(
         file=paste0(TMP_DIR, '/', tumor, '_PHATE_3.tsv'), 
         sep = '\t', 
         header = FALSE
     )
-    colnames(df) <- c('PHATE 1', 'PHATE 2', 'PHATE 3')
-    rownames(df) <- tumor_cells
-    df <- data.frame(df)
+    colnames(phate_df) <- c('PHATE 1', 'PHATE 2', 'PHATE 3')
+    rownames(phate_df) <- tumor_cells
+
+    clust_df <- read.csv(
+        file=paste0(TMP_DIR, '/', tumor, '_clusters.tsv'),
+        sep = '\t',
+        header = TRUE
+    )
+    colnames(clust_df) <- c('cell', 'cluster')
+    print(length(rownames(clust_df)))
+    print(length(tumor_cells))
+    rownames(clust_df) <- tumor_cells
+
+    phate_df <- data.frame(phate_df)
     print('Merging...')
-    df <- merge(df, tumor_counts,  by=0)
+    #df <- merge(df, tumor_counts,  by=0)
+    
+    tumor_counts$PHATE1 <- phate_df$PHATE.1
+    tumor_counts$PHATE2 <- phate_df$PHATE.2
+    tumor_counts$PHATE3 <- phate_df$PHATE.3
+    tumor_counts$cluster <- as.character(clust_df$cluster)
+
     print('done.')
-    tumor_dfs[[tumor]] <- df
+    tumor_dfs[[tumor]] <- tumor_counts
 }
 
 # Load the UMAP coordinates for the aligned tumors
@@ -74,123 +115,222 @@ aligned_umap_df <- read.csv(
     header = TRUE,
     row.names = 1
 )
+aligned_PJ018_PJ016_df <- read.csv(
+    paste0(TMP_DIR, '/PJ017_PJ025_aligned_PHATE_3.tsv'),
+    sep = '\t',
+    header = TRUE,
+    row.names = 1
+)
+aligned_dfs <- list()
+aligned_dfs[['All']] <- aligned_umap_df
+aligned_dfs[['PJ017_PJ025']] <- aligned_PJ018_PJ016_df
 
 server <- function(input, output) {
     
-    output$plot1 <- renderPlotly({plot_ly(
-        tumor_dfs[[input$tumor1]], 
-        x = tumor_dfs[[input$tumor1]]$PHATE.1, 
-        y = tumor_dfs[[input$tumor1]]$PHATE.2, 
-        z = tumor_dfs[[input$tumor1]]$PHATE.3, 
-        height = 700,
-        marker = list(color = tumor_dfs[[input$tumor1]][[input$colorby1]], colorscale = 'Viridis', showscale = TRUE, size = 5)
-        ) %>% add_markers() %>% layout(
-            title = "\nPlot 1",
-            titlefont = list(family = "arial", size = 25),
-            scene = list(xaxis = list(title = 'PHATE 1'),
-            yaxis = list(title = 'PHATE 2'),
-            zaxis = list(title = 'PHATE 3')))
+    output$plot1 <- renderPlotly({
+        if (input$colorby1 != 'cluster') {
+            plot_ly(
+                tumor_dfs[[input$tumor1]], 
+                x = tumor_dfs[[input$tumor1]]$PHATE1, 
+                y = tumor_dfs[[input$tumor1]]$PHATE2, 
+                z = tumor_dfs[[input$tumor1]]$PHATE3, 
+                height = 700,
+                marker = list(color = tumor_dfs[[input$tumor1]][[input$colorby1]], colorscale = 'Viridis', showscale = TRUE, size = 3)
+            ) %>% add_markers() %>% layout(
+                title = "\nPlot 1",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(xaxis = list(title = 'PHATE 1')),
+                yaxis = list(title = 'PHATE 2'),
+                zaxis = list(title = 'PHATE 3')
+            )
+        }
+        else {
+            plot_ly(
+                tumor_dfs[[input$tumor1]],
+                x = tumor_dfs[[input$tumor1]]$PHATE1,
+                y = tumor_dfs[[input$tumor1]]$PHATE2,
+                z = tumor_dfs[[input$tumor1]]$PHATE3,
+                color = tumor_dfs[[input$tumor1]][['cluster']],
+                colors = brewer.pal(length(unique(tumor_dfs[[input$tumor1]][['cluster']])), "Set1"),
+                height = 700,
+                marker = list(size = 3)
+            ) %>% 
+            add_markers() %>% 
+            layout(
+                title = "\nPlot 1",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(xaxis = list(title = 'PHATE 1'),
+                yaxis = list(title = 'PHATE 2'),
+                zaxis = list(title = 'PHATE 3'))
+            )
+        }
     })
-    #output$plot1<-renderPlot({
-    #    ggplot(tumor_dfs[[input$tumor1]], aes(x=PHATE.1,y=PHATE.2, color=get(input$colorby1))) + 
-    #    scale_color_viridis() + 
-    #    geom_point() + 
-    #    theme_classic()
-    #})
-    output$plot2 <- renderPlotly({plot_ly(
-        tumor_dfs[[input$tumor2]],
-        x = tumor_dfs[[input$tumor2]]$PHATE.1,
-        y = tumor_dfs[[input$tumor2]]$PHATE.2,
-        z = tumor_dfs[[input$tumor2]]$PHATE.3,
-        height = 700,
-        marker = list(color = tumor_dfs[[input$tumor2]][[input$colorby2]], colorscale = 'Viridis', showscale = TRUE, size = 5)
-        ) %>% add_markers() %>% layout(
-            title = "Plot 2",
-            scene = list(xaxis = list(title = 'PHATE 1'),
-                     yaxis = list(title = 'PHATE 2'),
-                     zaxis = list(title = 'PHATE 3')))
+    output$plot2 <- renderPlotly({
+        if (input$colorby2 != 'cluster') {
+            plot_ly(
+                tumor_dfs[[input$tumor2]],
+                x = tumor_dfs[[input$tumor2]]$PHATE1,
+                y = tumor_dfs[[input$tumor2]]$PHATE2,
+                z = tumor_dfs[[input$tumor2]]$PHATE3,
+                height = 700,
+                marker = list(color = tumor_dfs[[input$tumor2]][[input$colorby2]], colorscale = 'Viridis', showscale = TRUE, size = 3)
+            ) %>% add_markers() %>% layout(
+                title = "\nPlot 2",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(xaxis = list(title = 'PHATE 1')),
+                yaxis = list(title = 'PHATE 2'),
+                zaxis = list(title = 'PHATE 3')
+            )
+        }
+        else {
+            plot_ly(
+                tumor_dfs[[input$tumor2]],
+                x = tumor_dfs[[input$tumor2]]$PHATE1,
+                y = tumor_dfs[[input$tumor2]]$PHATE2,
+                z = tumor_dfs[[input$tumor2]]$PHATE3,
+                color = tumor_dfs[[input$tumor1]][['cluster']],
+                colors = brewer.pal(length(unique(tumor_dfs[[input$tumor2]][['cluster']])), "Set1"),
+                height = 700,
+                marker = list(size = 3)
+                ) %>% add_markers() %>% layout(
+                    title = "\nPlot 2",
+                    titlefont = list(family = "arial", size = 25),
+                    scene = list(xaxis = list(title = 'PHATE 1'),
+                    yaxis = list(title = 'PHATE 2'),
+                    zaxis = list(title = 'PHATE 3'))
+            )
+        }
+
     })
-    #output$plot2<-renderPlot({
-    #    ggplot(tumor_dfs[[input$tumor2]], aes(x=PHATE.1,y=PHATE.2, color=get(input$colorby2))) + 
-    #    scale_color_viridis() + 
-    #    geom_point() + 
-    #    theme_classic()
-    #})
-    output$plot3 <- renderPlotly({plot_ly(
-        tumor_dfs[[input$tumor3]],
-        x = tumor_dfs[[input$tumor3]]$PHATE.1,
-        y = tumor_dfs[[input$tumor3]]$PHATE.2,
-        z = tumor_dfs[[input$tumor3]]$PHATE.3,
-        height = 700,
-        marker = list(color = tumor_dfs[[input$tumor3]][[input$colorby3]], colorscale = 'Viridis', showscale = TRUE, size = 5)
-        ) %>% add_markers() %>% layout(scene = list(xaxis = list(title = 'PHATE 1'),
-                     yaxis = list(title = 'PHATE 2'),
-                     zaxis = list(title = 'PHATE 3')))
+    output$plot3 <- renderPlotly({
+        if (input$colorby3 != 'cluster') {
+            plot_ly(
+                tumor_dfs[[input$tumor3]],
+                x = tumor_dfs[[input$tumor3]]$PHATE1,
+                y = tumor_dfs[[input$tumor3]]$PHATE2,
+                z = tumor_dfs[[input$tumor3]]$PHATE3,
+                height = 700,
+                marker = list(color = tumor_dfs[[input$tumor3]][[input$colorby3]], colorscale = 'Viridis', showscale = TRUE, size = 3)
+            ) %>% add_markers() %>% layout(
+                title = "\nPlot 3",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(xaxis = list(title = 'PHATE 1')),
+                yaxis = list(title = 'PHATE 2'),
+                zaxis = list(title = 'PHATE 3')
+            )
+        }
+        else {
+            plot_ly(
+                tumor_dfs[[input$tumor3]],
+                x = tumor_dfs[[input$tumor3]]$PHATE1,
+                y = tumor_dfs[[input$tumor3]]$PHATE2,
+                z = tumor_dfs[[input$tumor3]]$PHATE3,
+                color = tumor_dfs[[input$tumor3]][['cluster']],
+                colors = brewer.pal(length(unique(tumor_dfs[[input$tumor3]][['cluster']])), "Set1"),
+                height = 700,
+                marker = list(size = 3)
+                ) %>% add_markers() %>% layout(
+                    title = "\nPlot 3",
+                    titlefont = list(family = "arial", size = 25),
+                    scene = list(xaxis = list(title = 'PHATE 1'),
+                    yaxis = list(title = 'PHATE 2'),
+                    zaxis = list(title = 'PHATE 3')
+                )
+            )
+        }
+
     })
-    #output$plot3<-renderPlot({
-    #    ggplot(tumor_dfs[[input$tumor3]], aes(x=PHATE.1,y=PHATE.2, color=get(input$colorby3))) + 
-    #    scale_color_viridis() + 
-    #    geom_point() + 
-    #    theme_classic()
-    #})
-    output$plot4 <- renderPlotly({plot_ly(
-        tumor_dfs[[input$tumor4]],
-        x = tumor_dfs[[input$tumor4]]$PHATE.1,
-        y = tumor_dfs[[input$tumor4]]$PHATE.2,
-        z = tumor_dfs[[input$tumor4]]$PHATE.3,
-        height = 700,
-        marker = list(color = tumor_dfs[[input$tumor4]][[input$colorby4]], colorscale = 'Viridis', showscale = TRUE, size = 5)
-        ) %>% add_markers() %>% layout(scene = list(xaxis = list(title = 'PHATE 1'),
-                     yaxis = list(title = 'PHATE 2'),
-                     zaxis = list(title = 'PHATE 3')))
+    output$plot4 <- renderPlotly({
+        if (input$colorby4 != 'cluster') {
+            plot_ly(
+                tumor_dfs[[input$tumor4]],
+                x = tumor_dfs[[input$tumor4]]$PHATE1,
+                y = tumor_dfs[[input$tumor4]]$PHATE2,
+                z = tumor_dfs[[input$tumor4]]$PHATE3,
+                height = 700,
+                marker = list(color = tumor_dfs[[input$tumor4]][[input$colorby4]], colorscale = 'Viridis', showscale = TRUE, size = 3)
+            ) %>% add_markers() %>% layout(
+                title = "\nPlot 4",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(xaxis = list(title = 'PHATE 1')),
+                yaxis = list(title = 'PHATE 2'),
+                zaxis = list(title = 'PHATE 3')
+            )
+        }
+        else {
+            plot_ly(
+                tumor_dfs[[input$tumor4]],
+                x = tumor_dfs[[input$tumor4]]$PHATE1,
+                y = tumor_dfs[[input$tumor4]]$PHATE2,
+                z = tumor_dfs[[input$tumor4]]$PHATE3,
+                color = tumor_dfs[[input$tumor4]][['cluster']],
+                colors = brewer.pal(length(unique(tumor_dfs[[input$tumor4]][['cluster']])), "Set1"),
+                height = 700,
+                marker = list(size = 3)
+                ) %>% add_markers() %>% layout(
+                    title = "\nPlot 4",
+                    titlefont = list(family = "arial", size = 25),
+                    scene = list(xaxis = list(title = 'PHATE 1'),
+                    yaxis = list(title = 'PHATE 2'),
+                    zaxis = list(title = 'PHATE 3')
+                )
+            )
+        }
     })
-    #output$plot4<-renderPlot({
-    #    ggplot(tumor_dfs[[input$tumor4]], aes(x=PHATE.1,y=PHATE.2, color=get(input$colorby4))) + 
-    #    scale_color_viridis() + 
-    #    geom_point() + 
-    #    theme_classic()
-    #})
     
     # GSEA
     output$heatmap <- renderPlotly({
-        tumor_clusts <- select(filter(tumor_clust_expr_df, tumor_clust_expr_df[input$gsea1] > 0), c('tumor_cluster'))    
-        all_go_terms = select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clusts[[1]]), c('GO_term'))
-        for (tumor_clust in tumor_clusts[2:length(rownames(tumor_clusts)),]) {
-          h <- select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clust), c('GO_term'))
-          all_go_terms <- rbind(
-            all_go_terms,
-            select(
-              filter(
-                gsea_df, gsea_df$tumor_cluster == tumor_clust
-              ), 
-              c('GO_term')
-            )
-          )
+        #tumor_clusts <- select(filter(tumor_clust_expr_df, tumor_clust_expr_df[input$gsea1] > 0), c('tumor_cluster'))    
+        #all_go_terms = select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clusts[[1]]), c('GO_term'))
+        #for (tumor_clust in tumor_clusts[2:length(rownames(tumor_clusts)),]) {
+        #  h <- select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clust), c('GO_term'))
+        #  all_go_terms <- rbind(
+        #    all_go_terms,
+        #    select(
+        #      filter(
+        #        gsea_df, gsea_df$tumor_cluster == tumor_clust
+        #      ), 
+        #      c('GO_term')
+        #    )
+        #  )
+        #}
+        #all_go_terms <- unique(all_go_terms["GO_term"])
+
+        #matrix = c()
+        #print(dim(all_go_terms['GO_term']))
+        #for (go_term in all_go_terms[['GO_term']][1:200]) {
+        #  row <- c()
+        #  for (tumor_clust in tumor_clusts[['tumor_cluster']]) {
+        #    curr_terms <- select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clust), c('GO_term'))['GO_term']
+        #    if(go_term %in% curr_terms[['GO_term']]) {
+        #      row <- append(row, 1.0)
+        #    }
+        #    else{
+        #      row <- append(row, 0.0)
+        #    }
+        #  }
+        #  print(row)
+        #  matrix <- append(matrix, row)
+        #} 
+
+        #heatmap <- matrix(matrix, ncol = length(tumor_clusts[['tumor_cluster']]), nrow = length(all_go_terms[['GO_term']][1:200]))
+        #rownames(heatmap) <- all_go_terms[['GO_term']][1:200]
+        #colnames(heatmap) <- tumor_clusts[['tumor_cluster']]
+        tumor_clusts <- select(filter(tumor_clust_expr_df, tumor_clust_expr_df[input$gsea1] > 0), c('tumor_cluster'))
+        select_cols <- c()
+        for (tc in colnames(gsea_full_df)) {
+            if(tc %in% tumor_clusts[['tumor_cluster']]) {
+                select_cols <- c(select_cols, 1.0)
+            }
+            else {
+                select_cols <- c(select_cols, 0.0)
+            }
         }
-        all_go_terms <- unique(all_go_terms["GO_term"])
-
-        matrix = c()
-        print(dim(all_go_terms['GO_term']))
-        for (go_term in all_go_terms[['GO_term']][1:200]) {
-          row <- c()
-          for (tumor_clust in tumor_clusts[['tumor_cluster']]) {
-            curr_terms <- select(filter(gsea_df, gsea_df$tumor_cluster == tumor_clust), c('GO_term'))['GO_term']
-            if(go_term %in% curr_terms[['GO_term']]) {
-              row <- append(row, 1.0)
-            }
-            else{
-              row <- append(row, 0.0)
-            }
-          }
-          print(row)
-          matrix <- append(matrix, row)
-        } 
-
-        heatmap <- matrix(matrix, ncol = length(tumor_clusts[['tumor_cluster']]), nrow = length(all_go_terms[['GO_term']][1:200]))
-        rownames(heatmap) <- all_go_terms[['GO_term']][1:200]
-        colnames(heatmap) <- tumor_clusts[['tumor_cluster']]
+        row_annot <- c(t(unname(data.frame(strsplit(colnames(gsea_full_df), "_"))[1,])), select_cols)
+        #row_annot <- select_cols
         heatmaply(
-            heatmap, 
+            gsea_full_df,
+            col_side_colors = row_annot, 
             showticklabels = c(TRUE, FALSE), 
             colors = gray.colors(100, rev = TRUE) 
         ) %>% layout(height = 2000, width=2000)
@@ -199,10 +339,11 @@ server <- function(input, output) {
     # Tumor integration
     output$aligned_plot1 <- renderPlotly({
         colby <- input$aligned_colorby1
+        aligned_df <- aligned_dfs[[input$aligned1]]
         if (colby != 'tumor') {
             gene_df <- counts[toString(input$aligned_colorby1)]
             rownames(gene_df) <- cells
-            curr_df <- merge(aligned_umap_df, gene_df, by=0)
+            curr_df <- merge(aligned_df, gene_df, by=0)
             plot_ly(
                 curr_df,
                 x = curr_df$PHATE1,
@@ -216,7 +357,7 @@ server <- function(input, output) {
             )
         }
         else {
-            curr_df <- aligned_umap_df
+            curr_df <- aligned_df
             plot_ly(
                 curr_df,
                 x = curr_df$PHATE1,
@@ -278,7 +419,7 @@ ui <- fluidPage(
         tabPanel("Individual tumors", 
             sidebarLayout(
                 sidebarPanel(
-                    selectInput("tumor1", "Plot 1 dataset:", TUMORS),
+                    selectInput("tumor1", "Plot 1 dataset:", append(TUMORS, 'Aligned')),
                     textInput("colorby1", "Select gene:", value = "OLIG1"), 
                     selectInput("tumor2", "Plot 2 dataset:", TUMORS),
                     textInput("colorby2", "Select gene:", value = "STMN2"), 
@@ -326,6 +467,7 @@ ui <- fluidPage(
         tabPanel("Tumors integrated",
            sidebarLayout(
                 sidebarPanel(
+                    selectInput("aligned1", "Plot 1 dataset:", names(aligned_dfs)),
                     textInput("aligned_colorby1", "Plot 1, color by:", value = "tumor"),
                     textInput("aligned_colorby2", "Plot 2, color by:", value = "GFAP"),
                     width=2
