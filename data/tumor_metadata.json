@@ -1,0 +1,22 @@
+{
+    "tumors": [
+        "PJ016",
+        "PJ018",
+        "PJ048",
+        "PJ030",
+        "PJ025",
+        "PJ035",
+        "PJ017",
+        "PJ032"
+    ],
+    "tumor_to_subtype": {
+        "PJ016": "proneural",
+        "PJ018": "proneural",
+        "PJ048": "proneural",
+        "PJ030": "classical",
+        "PJ025": "classical",
+        "PJ035": "classical",
+        "PJ017": "mesenchymal",
+        "PJ032": "mesenchymal"       
+    }
+}
