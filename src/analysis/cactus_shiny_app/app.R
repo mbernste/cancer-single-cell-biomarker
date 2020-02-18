@@ -6,11 +6,16 @@ library(heatmaply)
 library(dplyr)
 library(shinycssloaders)
 library(RColorBrewer)
+library(rjson)
+library(DT)
 
 TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
 #TUMORS = c('PJ048')
 DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/data'
 TMP_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp'
+
+de_genes_json <- paste0(TMP_DIR, "/cluster_de_genes.json")
+de_data <- fromJSON(file = de_genes_json)
 
 print('Loading counts data...')
 counts = h5read(paste0(DATA_DIR, "/GSE103224_normalized.h5"),"count")
@@ -97,6 +102,7 @@ all_aligned_df <- read.csv(
     row.names = 1
 )
 print(colnames(all_aligned_df))
+all_aligned_df$cluster <- as.character(all_aligned_df$cluster)
 aligned_dfs <- list()
 aligned_dfs[['All']] <- all_aligned_df
 for (tumor_i in names(tumor_dfs)) {
@@ -304,7 +310,13 @@ server <- function(input, output) {
     
     # GSEA
     output$heatmap <- renderPlotly({
-        tumor_clusts <- select(filter(tumor_clust_expr_df, tumor_clust_expr_df[input$gsea1] > 0), c('tumor_cluster'))
+        tumor_clusts <- select(
+            filter(
+                tumor_clust_expr_df, 
+                tumor_clust_expr_df[input$gsea1] > 0
+            ), 
+            c('tumor_cluster')
+        )
         select_cols <- c()
         for (tc in colnames(gsea_full_df)) {
             if(tc %in% tumor_clusts[['tumor_cluster']]) {
@@ -331,7 +343,7 @@ server <- function(input, output) {
     output$aligned_plot1 <- renderPlotly({
         colby <- input$aligned_colorby1
         aligned_df <- aligned_dfs[[input$aligned1]]
-        if (colby == 'tumor' | colby == 'subtype') {
+        if (colby == 'tumor' | colby == 'subtype' | colby == 'cluster') {
             curr_df <- aligned_df
             plot_ly(
                 curr_df,
@@ -373,7 +385,7 @@ server <- function(input, output) {
     output$aligned_plot2 <- renderPlotly({
         colby <- input$aligned_colorby2
         aligned_df <- aligned_dfs[[input$aligned2]]
-        if (colby == 'tumor' | colby == 'subtype') {
+        if (colby == 'tumor' | colby == 'subtype' | colby == 'cluster') {
             curr_df <- aligned_df
             plot_ly(
                 curr_df,
@@ -410,6 +422,12 @@ server <- function(input, output) {
                 )
             )
         }
+    })
+
+
+    # DE tables
+    output$de_table1 <- renderDataTable({
+        datatable(data.frame(de_data[[input$de_table_tumor1]][[input$de_table_clust1]]))
     })
 }   
 
@@ -473,11 +491,12 @@ ui <- fluidPage(
                 )
             )
         ),
-         tabPanel("Cluster GSEA",
+        tabPanel("Cluster GSEA",
             sidebarLayout(
                 sidebarPanel(
                     textInput("gsea1", "Select gene:"),
-                    width = 2
+                    width = 2,
+                    value = "SLC16A3"
                 ),
                 mainPanel("",
                     plotlyOutput("heatmap", width="100%") %>% withSpinner(color="#000000"),
@@ -486,6 +505,19 @@ ui <- fluidPage(
                 ),
             ),
             class = 'leftAlign'
+        ),
+        tabPanel("Tumor-Cluster DE",
+            sidebarLayout(
+                sidebarPanel(
+                    textInput("de_table_tumor1", "Select tumor:", value = 'PJ016'),
+                    textInput("de_table_clust1", "Select cluster:", value = '0')
+                ),
+                mainPanel("",
+                    dataTableOutput("de_table1") %>% withSpinner(color="#000000"),
+                    width = 6,
+                    style = "height:700px;"
+                ),
+            )
         )
   ),
   theme = "bootstrap.css"
