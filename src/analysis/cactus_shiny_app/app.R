@@ -427,7 +427,16 @@ server <- function(input, output) {
 
     # DE tables
     output$de_table1 <- renderDataTable({
-        datatable(data.frame(de_data[[input$de_table_tumor1]][[input$de_table_clust1]]))
+        table <- de_data[[input$de_table_tumor1]][[input$de_table_clust1]]
+        table <- data.frame(table)
+        colnames(table) <- c('DE Genes')
+        datatable(table)
+    })
+    output$de_table2 <- renderDataTable({
+        table <- de_data[[input$de_table_tumor2]][[input$de_table_clust2]]
+        table <- data.frame(table)
+        colnames(table) <- c('DE Genes')
+        datatable(table)
     })
 }   
 
@@ -509,14 +518,30 @@ ui <- fluidPage(
         tabPanel("Tumor-Cluster DE",
             sidebarLayout(
                 sidebarPanel(
-                    textInput("de_table_tumor1", "Select tumor:", value = 'PJ016'),
-                    textInput("de_table_clust1", "Select cluster:", value = '0')
+                    textInput("de_table_tumor1", "Table 1, select tumor:", value = 'PJ016'),
+                    textInput("de_table_clust1", "Table 1, select cluster:", value = '0'),
+                    textInput("de_table_tumor2", "Table 2, select tumor:", value = 'PJ017'),
+                    textInput("de_table_clust2", "Table 2, select cluster:", value = '0'),
+                    width = 2
                 ),
                 mainPanel("",
-                    dataTableOutput("de_table1") %>% withSpinner(color="#000000"),
+                    fluidRow(
+                        splitLayout(
+                            cellWidths = c("50%", "50%"),
+                            h3('Table 1'),
+                            h3('Table 2')
+                        )
+                    ),
+                    fluidRow(
+                        splitLayout(
+                            cellWidths = c("50%", "50%"),
+                            dataTableOutput("de_table1") %>% withSpinner(color="#000000"),
+                            dataTableOutput("de_table2") %>% withSpinner(color="#000000")
+                        )
+                    ),
                     width = 6,
                     style = "height:700px;"
-                ),
+                )
             )
         )
   ),
