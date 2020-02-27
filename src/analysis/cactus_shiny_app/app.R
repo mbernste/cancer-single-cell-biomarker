@@ -134,7 +134,7 @@ server <- function(input, output) {
                     color = tumor_dfs[[input$tumor1]][[input$colorby1]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 3
+                    size = input$size_plot1
                 )
             ) %>% 
             add_markers() %>% 
@@ -414,9 +414,14 @@ server <- function(input, output) {
                 y = curr_df$PHATE2,
                 z = curr_df$PHATE3,
                 height = 700,
-                marker = list(color = curr_df[[colby]], colorscale = 'Viridis', showscale = TRUE, size = 2)
-                ) %>% add_markers() %>% layout(
-                    scene = list(xaxis = list(title = 'PHATE 1'),
+                marker = list(
+                    color = curr_df[[colby]], 
+                    colorscale = 'Viridis', 
+                    showscale = TRUE, 
+                    size = 2
+                )
+            ) %>% add_markers() %>% layout(
+                scene = list(xaxis = list(title = 'PHATE 1'),
                     yaxis = list(title = 'PHATE 2'),
                     zaxis = list(title = 'PHATE 3')
                 )
@@ -451,6 +456,7 @@ ui <- fluidPage(
                 sidebarPanel(
                     selectInput("tumor1", "Plot 1 dataset:", TUMORS),
                     textInput("colorby1", "Select gene:", value = "OLIG1"), 
+                    textInput("size_plot1", "Dot size", value = 3),
                     selectInput("tumor2", "Plot 2 dataset:", TUMORS),
                     textInput("colorby2", "Select gene:", value = "STMN2"), 
                     selectInput("tumor3", "Plot 3 dataset:", TUMORS),
@@ -503,9 +509,8 @@ ui <- fluidPage(
         tabPanel("Cluster GSEA",
             sidebarLayout(
                 sidebarPanel(
-                    textInput("gsea1", "Select gene:"),
-                    width = 2,
-                    value = "SLC16A3"
+                    textInput("gsea1", "Select gene:", value = "SLC16A3"),
+                    width = 2
                 ),
                 mainPanel("",
                     plotlyOutput("heatmap", width="100%") %>% withSpinner(color="#000000"),
