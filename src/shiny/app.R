@@ -9,10 +9,12 @@ library(RColorBrewer)
 library(rjson)
 library(DT)
 
-TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
-#TUMORS = c('PJ048')
+##########################   Configuration ########################################
 DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/data'
 TMP_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp'
+###################################################################################
+
+TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
 
 de_genes_json <- paste0(TMP_DIR, "/cluster_de_genes.json")
 de_data <- fromJSON(file = de_genes_json)
@@ -34,7 +36,6 @@ gsea_df <- read.csv(
     sep = '\t',
     header = TRUE
 )
-
 gsea_full_df <- read.csv(
     paste0(TMP_DIR, "/gsea_binary_matrix.tsv"),
     sep = '\t',
