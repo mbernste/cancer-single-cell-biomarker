@@ -2,13 +2,15 @@
 
 CACTUS is a R/Shiny application with associated data processing pipeline for exploring tumor subpopulations in single-cell RNA-seq data.
 
+Currently, CACTUS supports exploring high-grade glioma scRNA-seq data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9). Future additions to CACTUS will enable exploration of other datasets and cancer types.
+
 CACTUS implements the following features: 
 * Visualize tumor scRNA-seq datasets with [PHATE](https://github.com/KrishnaswamyLab/PHATE) 
 * Cluster each tumor 
 * Perform differential expression (DE) analysis on each cluster for each tumor 
-* Pefrom gene set enrichment analysis on each cluster's DE genes using [Enrichr](https://amp.pharm.mssm.edu/Enrichr/) 
+* Perform [gene set enrichment analysis](https://www.pnas.org/content/102/43/15545) on each cluster's DE genes using [Enrichr](https://amp.pharm.mssm.edu/Enrichr/) 
 * Align tumor datasets with [Seurat](https://www.cell.com/cell/fulltext/S0092-8674(19)30559-8?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0092867419305598%3Fshowall%3Dtrue) 
-* Classify cell types using [CellAssign](https://shahlab.ca/projects/cellassign/)
+* Classify cell types using [CellAssign](https://shahlab.ca/projects/cellassign/) 
 
 These analyses are all automated using a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline. 
 
@@ -23,7 +25,7 @@ Required Python packages include:
 * [Louvain](https://louvain-igraph.readthedocs.io/en/latest/) 
 * [GSEApy](https://gseapy.readthedocs.io/en/latest/)
 * [PHATE](https://github.com/KrishnaswamyLab/PHATE) 
-* [Snakemake]((https://snakemake.readthedocs.io/en/stable/)
+* [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
 Required R packages include:
 * [Shiny](https://www.google.com/search?client=safari&rls=en&q=R+Shiny&ie=UTF-8&oe=UTF-8)
@@ -36,4 +38,5 @@ Required R packages include:
 ## Running CACTUS
 
 The Snakemake pipeline:
+
 ![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/dag.png)
