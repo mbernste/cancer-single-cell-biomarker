@@ -78,21 +78,29 @@ def main():
         )
 
         sc.pp.normalize_total(ad, target_sum=1e6)
+        #ad.raw = ad
         sc.pp.log1p(ad)
         sc.pp.pca(ad, n_comps=50)
         sc.pp.neighbors(ad)
         sc.tl.louvain(ad, resolution=resolution)
 
         # Record cluster of each cell
+        res_str = str(resolution).replace('.', '_')
         ad.obs[['cell', 'louvain']].to_csv(
-            join(out_dir, '{}_clusters.tsv'.format(tumor)), 
+            join(out_dir, '{}_clusters.res_{}.tsv'.format(
+                tumor, 
+                res_str
+            )), 
             sep='\t',
             index=False
         )
 
         # Rank genes within each cluster
         sc.tl.rank_genes_groups(
-            ad, groupby='louvain', method='wilcoxon', n_genes=len(load_GSE103224.GENE_NAMES)
+            ad, 
+            groupby='louvain', 
+            method='wilcoxon', 
+            n_genes=len(load_GSE103224.GENE_NAMES)
         )
         for clust in sorted(set(ad.obs['louvain'])):
             gene_to_pval = {
@@ -102,10 +110,18 @@ def main():
                     ad.uns['rank_genes_groups']['pvals_adj'][clust]
                 )
             }
+            gene_to_logfold = {
+                gene: lf
+                for gene, lf in zip(
+                    ad.uns['rank_genes_groups']['names'][clust],
+                    ad.uns['rank_genes_groups']['logfoldchanges'][clust]
+                )
+            }
             de_genes = [
                 gene
-                for gene, pval in gene_to_pval.items()
-                if pval < 0.05
+                for gene in gene_to_pval.keys()
+                if gene_to_pval[gene] < 0.01 
+                and gene_to_logfold[gene] > 1
             ]
             tumor_to_clust_to_de_genes[tumor][clust] = de_genes
     with open(join(out_dir, 'cluster_de_genes.json'), 'w') as f:
