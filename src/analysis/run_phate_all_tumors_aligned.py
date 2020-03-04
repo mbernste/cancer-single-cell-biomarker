@@ -70,6 +70,11 @@ def main():
         for tumor in tumors
     ]
 
+    cluster_df = pd.read_csv(join(in_dir, 'all_tumors_clusters_aligned.tsv'), sep='\t')
+    cells_df = pd.DataFrame(data=cells, columns=['cell'], index=cells)
+    cluster_df = cells_df.join(cluster_df.set_index('cell'))
+    clusts = list(cluster_df['leiden'])
+
     #ad = AnnData(
     #    X=X,
     #    obs=pd.DataFrame(data=[x for x in zip(cells, tumors)], columns=['cell', 'tumor']),
@@ -90,10 +95,10 @@ def main():
     #ad.obs.to_csv(join(out_dir, 'all_tumors_aligned_PHATE_annot_{}.tsv'.format(n_comps)), sep='\t', index=False)
 
     da = [
-        (cell, tumor, subtype, p1, p2, p3)
-        for cell, tumor, subtype, (p1, p2, p3) in zip(cells, tumors, subtypes, X_phate)
+        (cell, tumor, subtype, clust, p1, p2, p3)
+        for cell, tumor, subtype, clust, (p1, p2, p3) in zip(cells, tumors, subtypes, clusts, X_phate)
     ]
-    df = pd.DataFrame(data=da, columns=['cell', 'tumor', 'subtype', 'PHATE1', 'PHATE2', 'PHATE3'])
+    df = pd.DataFrame(data=da, columns=['cell', 'tumor', 'subtype', 'cluster', 'PHATE1', 'PHATE2', 'PHATE3'])
     #sc.pl.umap(ad, color='tumor')
     #plt.show()
 

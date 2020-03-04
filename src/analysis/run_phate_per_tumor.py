@@ -36,11 +36,17 @@ def main():
     parser = OptionParser(usage=usage)
     parser.add_option("-o", "--out_dir", help="Directory to write output")
     parser.add_option("-t", "--tumor", help="Only plot specific tumor")
+    parser.add_option("-n", "--n_comps", help="Number of components")
     parser.add_option("-c", "--cluster_id", help="Cluster ID to restrict plot")
     parser.add_option("-l", "--cluster_file", help="Files storing cluster assignments. Required if '-c' flat is used.")
     (options, args) = parser.parse_args()
    
     out_dir = options.out_dir
+
+    if options.n_comps:
+        n_comps = int(options.n_comps)
+    else:
+        n_comps = 2
 
     sc.settings.verbosity = 3
     sc.logging.print_versions()
@@ -63,14 +69,24 @@ def main():
         sc.pp.normalize_total(ad, target_sum=1e6)
         sc.pp.log1p(ad)
 
-        phate_operator = phate.PHATE(n_jobs=-2, random_state=1)
+        phate_operator = phate.PHATE(n_jobs=-2, random_state=1, n_components=n_comps)
         X_phate = phate_operator.fit_transform(ad.X)
 
-        np.savetxt(
-            join(out_dir, '{}_PHATE.tsv'.format(tumor)), 
-            X_phate, 
-            delimiter='\t'
+        df = pd.DataFrame(
+            data=X_phate,
+            index=cells,
+            columns=['PHATE_{}'.format(i+1) for i in range(n_comps)]
         )
+        df.to_csv(
+            join(out_dir, '{}_PHATE_{}.tsv'.format(tumor, n_comps)),
+            sep='\t'
+        )
+
+        #np.savetxt(
+        #    join(out_dir, '{}_PHATE_{}.tsv'.format(tumor, n_comps)), 
+        #    X_phate, 
+        #    delimiter='\t'
+        #)
 
 if __name__ == '__main__':
     main()

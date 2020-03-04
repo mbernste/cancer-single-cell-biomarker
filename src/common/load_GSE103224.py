@@ -35,6 +35,10 @@ for index, tumor in enumerate(TUMORS):
     TUMOR_TO_INDICES[tumor].append(index)
 TUMOR_TO_INDICES = dict(TUMOR_TO_INDICES)
 
+def counts_matrix_all_tumors():
+    with h5py.File(DATA_F, 'r') as f:
+        counts = f['count'][:]
+    return counts, CELLS, TUMORS
 
 def counts_matrix_for_tumor(tumor):
     """

@@ -33,11 +33,6 @@ TUMORS = [
     'PJ032'
 ]
 
-#TUMORS = [
-#    'PJ030',
-#    'PJ035'
-#]
-
 GENE_SETS = ['GO_Biological_Process_2018']
 #GENE_SETS = ['GO_Molecular_Function_2018']
 
@@ -59,19 +54,21 @@ def main():
     for tumor, clust_to_de_genes in tumor_to_cluster_to_de_genes.items():
         for clust in clust_to_de_genes:
             de_genes = clust_to_de_genes[clust]
-            enr = gp.enrichr(
-                gene_list=de_genes,
-                gene_sets=GENE_SETS,
-                no_plot=True,
-                cutoff=0.05  # test dataset, use lower value from range(0,1)
-            )
-            enr.results = enr.results[enr.results["Adjusted P-value"] < GSEA_THRESH]
-            print(enr.results)
-            sig_terms = set(enr.results['Term'])
-            gsea_da += [
-                ('{}_{}'.format(tumor, clust), term)
-                for term in sig_terms
-            ]
+            print('Running GSEA on {} genes...'.format(len(de_genes)))
+            if len(de_genes) > 0:
+                enr = gp.enrichr(
+                    gene_list=de_genes,
+                    gene_sets=GENE_SETS,
+                    no_plot=True,
+                    cutoff=0.05  # test dataset, use lower value from range(0,1)
+                )
+                enr.results = enr.results[enr.results["Adjusted P-value"] < GSEA_THRESH]
+                print(enr.results)
+                sig_terms = set(enr.results['Term'])
+                gsea_da += [
+                    ('{}_{}'.format(tumor, clust), term)
+                    for term in sig_terms
+                ]
     gsea_df = pd.DataFrame(
         data=gsea_da,
         columns=['tumor_cluster', 'GO_term']

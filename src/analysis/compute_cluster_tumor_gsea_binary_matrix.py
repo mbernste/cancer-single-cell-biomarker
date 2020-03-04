@@ -22,13 +22,18 @@ def main():
     g = gsea_df.groupby(by='GO_term')
     mat = []
     row_terms = []
+    excluded = 0
     for term, df in g:
         row = []
         term_tumor_clusts = set(df['tumor_cluster'])
         for tum_clust in all_tumor_clusts:
             row.append(int(tum_clust in term_tumor_clusts))
-        mat.append(row)
-        row_terms.append(term)
+        if sum(row) > 1:
+            mat.append(row)
+            row_terms.append(term)
+        else:
+            excluded += 1
+    print("Excluded {} rows.".format(excluded))
 
     binary_mat_df = pd.DataFrame(
         data=mat,

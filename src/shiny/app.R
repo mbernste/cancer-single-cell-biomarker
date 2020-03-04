@@ -1,3 +1,5 @@
+
+
 library(shiny)
 library(ggplot2)
 library(rhdf5)
@@ -10,13 +12,13 @@ library(rjson)
 library(DT)
 
 ##########################   Configuration ########################################
-DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/data'
-TMP_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp'
+#DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp_test'
 ###################################################################################
 
 TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
 
-de_genes_json <- paste0(TMP_DIR, "/cluster_de_genes.json")
+de_genes_json <- paste0(DATA_DIR, "/cluster_de_genes.json")
+print(de_genes_json)
 de_data <- fromJSON(file = de_genes_json)
 
 print('Loading counts data...')
@@ -32,12 +34,12 @@ print('done.')
 
 # Load the GSEA data
 gsea_df <- read.csv(
-    paste0(TMP_DIR, "/gsea_results.tsv"),
+    paste0(DATA_DIR, "/gsea_results.tsv"),
     sep = '\t',
     header = TRUE
 )
 gsea_full_df <- read.csv(
-    paste0(TMP_DIR, "/gsea_binary_matrix.tsv"),
+    paste0(DATA_DIR, "/gsea_binary_matrix.tsv"),
     sep = '\t',
     header = TRUE,
     row.names = 1
@@ -45,7 +47,7 @@ gsea_full_df <- read.csv(
 
 # Load tumor-cluster 'expression' data
 tumor_clust_expr_df <- read.csv(
-    paste0(TMP_DIR, "/tumor_cluster_gene_expression.tsv"),
+    paste0(DATA_DIR, "/tumor_cluster_gene_expression.tsv"),
     sep = '\t',
     header = TRUE
 )
@@ -53,6 +55,7 @@ tumor_clust_expr_df <- read.csv(
 # Load each tumor's expression data and dimension reduction data
 tumor_dfs <- c()
 for (tumor in TUMORS) {
+    print(paste('Creating dataset for tumor', tumor))
     # Load data matrix
     tumor_indices <- c()
     for (i in 1:length(cells)) {
@@ -64,18 +67,24 @@ for (tumor in TUMORS) {
     tumor_counts <- counts[tumor_indices,]
     rownames(tumor_counts) <- tumor_cells
     colnames(tumor_counts) <- genes
-    
+    print('done.')    
+
     # Read dimension reduction
+    print(paste('Loading PHATE data for tumor', tumor))
     phate_df <- read.csv(
-        file=paste0(TMP_DIR, '/', tumor, '_PHATE_3.tsv'), 
+        file=paste0(DATA_DIR, '/', tumor, '_PHATE_3.tsv'), 
         sep = '\t', 
-        header = FALSE
+        header = TRUE,
+        row.names = 1
     )
-    colnames(phate_df) <- c('PHATE 1', 'PHATE 2', 'PHATE 3')
+    colnames(phate_df) <- c('PHATE1', 'PHATE2', 'PHATE3')
+    print(length(tumor_cells))
+    print(nrow(phate_df))
     rownames(phate_df) <- tumor_cells
+    print('done.')
 
     clust_df <- read.csv(
-        file=paste0(TMP_DIR, '/', tumor, '_clusters.tsv'),
+        file=paste0(DATA_DIR, '/', tumor, '_clusters.res_0_8.tsv'),
         sep = '\t',
         header = TRUE
     )
@@ -83,21 +92,21 @@ for (tumor in TUMORS) {
     rownames(clust_df) <- tumor_cells
 
     phate_df <- data.frame(phate_df)
-    print('Merging...')
+    #print('Merging...')
     #df <- merge(df, tumor_counts,  by=0)
     
-    tumor_counts$PHATE1 <- phate_df$PHATE.1
-    tumor_counts$PHATE2 <- phate_df$PHATE.2
-    tumor_counts$PHATE3 <- phate_df$PHATE.3
+    tumor_counts$PHATE1 <- phate_df$PHATE1
+    tumor_counts$PHATE2 <- phate_df$PHATE2
+    tumor_counts$PHATE3 <- phate_df$PHATE3
     tumor_counts$cluster <- as.character(clust_df$cluster)
 
-    print('done.')
+    #print('done.')
     tumor_dfs[[tumor]] <- tumor_counts
 }
 
 # Load the PHATE coordinates for the aligned tumors
 all_aligned_df <- read.csv(
-    paste0(TMP_DIR, '/all_tumors_aligned_PHATE_3.tsv'),
+    paste0(DATA_DIR, '/all_tumors_aligned_PHATE_3.tsv'),
     sep = '\t',
     header = TRUE,
     row.names = 1
@@ -113,7 +122,7 @@ for (tumor_i in names(tumor_dfs)) {
         }
         print(paste("Loading alignment data for tumor", tumor_i, "and", tumor_j))
         a_df <- read.csv(
-            paste0(TMP_DIR, '/pairwise_integrations_PHATE/', tumor_i, '_', tumor_j, '_aligned_PHATE_3.tsv'),
+            paste0(DATA_DIR, '/pairwise_integrations_PHATE/', tumor_i, '_', tumor_j, '_aligned_PHATE_3.tsv'),
             sep = '\t',
             header = TRUE,
             row.names = 1

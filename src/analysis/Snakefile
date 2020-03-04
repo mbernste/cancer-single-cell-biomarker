@@ -44,6 +44,37 @@ PAIRWISE_ALIGNED_OUTPUTS = [
         '{}/pairwise_integrations/PJ035_PJ048.h5'.format(config['output_dir'])
 ]
 
+PAIRWISE_ALIGNED_PHATE_OUTPUTS = [
+        '{}/pairwise_integrations_PHATE/PJ016_PJ018_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ017_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ025_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ030_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ032_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ016_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ018_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ025_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ030_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ032_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ017_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ018_PJ025_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ018_PJ030_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ018_PJ032_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ018_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ018_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ025_PJ030_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ025_PJ032_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ025_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ025_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ030_PJ032_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ030_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ030_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ032_PJ035_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ032_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/pairwise_integrations_PHATE/PJ035_PJ048_aligned_PHATE_3.tsv'.format(config['output_dir'])
+]
+
 rule all:
     input:
         '{}/cluster_de_genes.json'.format(config['output_dir']), 
@@ -62,7 +93,8 @@ rule all:
         ),
         '{}/all_tumors_aligned_PHATE_3.tsv'.format(config['output_dir']),
         '{}/tumor_cluster_gene_expression.tsv'.format(config['output_dir']),
-        PAIRWISE_ALIGNED_OUTPUTS        
+        PAIRWISE_ALIGNED_OUTPUTS,
+        PAIRWISE_ALIGNED_PHATE_OUTPUTS        
 
 rule cluster_tumors:
     output:
@@ -181,6 +213,21 @@ rule align_tumors_pairwise:
             'Rscript pairwise_integration.R {{input}} {tmp}/pairwise_integrations'.format(
                 tmp=config['output_dir']
             )   
+        )
+
+rule run_phate_pairwise_aligned_tumors:
+    input:
+        PAIRWISE_ALIGNED_OUTPUTS
+    output:
+        PAIRWISE_ALIGNED_PHATE_OUTPUTS
+    run:
+        shell(
+            'mkdir -p {}/pairwise_integrations_PHATE'.format(config['output_dir'])
+        ),
+        shell(
+            'python run_phate_pairwise_tumors_aligned.py {tmp}/pairwise_integrations -n 3 -o {tmp}/pairwise_integrations_PHATE'.format(
+                tmp=config['output_dir']
+            )
         )
 
 

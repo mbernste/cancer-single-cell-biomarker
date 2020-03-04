@@ -32,19 +32,24 @@ mat <- c()
 for (gene in all_genes) {
   row <- c()
   for (group in all_groups) {
+    print(gene)
+    print(group)
     if (gene %in% j[[group]]) {
       row <- append(row, 1)
     }
     else {
       row <- append(row, 0)
     }
+    print(row)
   }
   mat <- append(mat, row)
   print(mat)
 }
-marker_mat <- matrix(mat, nrow = length(all_genes), ncol = length(all_groups))
+marker_mat <- t(matrix(mat, ncol = length(all_genes), nrow = length(all_groups)))
 rownames(marker_mat) <- all_genes
 colnames(marker_mat) <- all_groups
+
+print(marker_mat)
 
 print('Loading counts data...')
 counts = h5read(paste0(DATA_DIR, "/GSE103224.h5"),"count")
@@ -89,7 +94,6 @@ for (tumor in TUMORS) {
   
   cellprobs_mat <- cbind(cellprobs(fit))
   rownames(cellprobs_mat) <- tumor_cells
-  colnames(cellprobs_mat) <- colnames(marker_mat)
 
   write.table(celltypes_mat, file = paste0(OUT_DIR, '/', tumor, '_predicted_cell_types.tsv'), sep = '\t', quote = FALSE)
   write.table(cellprobs_mat, file = paste0(OUT_DIR, '/', tumor, '_predicted_cell_type_probs.tsv'), sep = '\t', quote = FALSE)

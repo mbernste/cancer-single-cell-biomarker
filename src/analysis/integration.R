@@ -21,7 +21,7 @@ library(rhdf5)
 Args = commandArgs(trailingOnly=TRUE)
 
 DATA_DIR = Args[1]
-OUT_DIR = paste0(Args[2],".h5")
+OUT_DIR = Args[2]
 if(length(Args)==3) Nfeature=Args[3] else Nfeature=2000
 
 # Load raw data
@@ -44,8 +44,10 @@ colnames(Raw_Dat$count) <- Raw_Dat$cell
 
 datasets <- list()
 for(tumor in unique(Raw_Dat$tumor)){
-    datasets[[tumor]] <- Raw_Dat$count[,grep(tumor,Raw_Dat$cell)]
+#for(tumor in c('PJ025', 'PJ048', 'TCGA_GBM')){
+    datasets[[tumor]] <- Raw_Dat$count[,grep(tumor,Raw_Dat$tumor)]
 }
+#print(dim(datasets[['TCGA_GBM']]))
 
 for (i in seq_along(names(datasets))) {
     datasets[[i]] <- CreateSeuratObject(counts = datasets[[i]], project = "NYGC", min.cells = 1)

@@ -51,6 +51,8 @@ for (tumor in TUMORS) {
 
 anchors <- FindIntegrationAnchors(object.list = sos, dims = 1:50)
 integ <- IntegrateData(anchorset = anchors, dims = 1:50)
+integ <- ScaleData(integ, verbose = FALSE)
+
 
 DefaultAssay(integ) <- "integrated"
 
