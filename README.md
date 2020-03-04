@@ -21,6 +21,7 @@ CACTUS has a number of R and Python dependencies.
 Required Python packages include:
 * [NumPy](https://numpy.org) 
 * [Pandas](https://pandas.pydata.org) 
+* [h5py](https://pypi.org/project/h5py/) 
 * [Scanpy](https://icb-scanpy.readthedocs-hosted.com/en/stable/) 
 * [Louvain](https://louvain-igraph.readthedocs.io/en/latest/) 
 * [GSEApy](https://gseapy.readthedocs.io/en/latest/)
@@ -34,6 +35,21 @@ Required R packages include:
 * [CellAssign](https://shahlab.ca/projects/cellassign/) 
 * [dplyr](https://www.rdocumentation.org/packages/dplyr/versions/0.7.8) 
 * [Seurat](https://satijalab.org/seurat/) 
+* [ggplot2](https://ggplot2.tidyverse.org) 
+* [rhdf5](http://bioconductor.org/packages/release/bioc/html/rhdf5.html) 
+* [shinycssloaders](https://cran.r-project.org/web/packages/shinycssloaders/index.html) 
+* [RColorBrewer](https://cran.r-project.org/web/packages/RColorBrewer/index.html) 
+* [rjson](https://cran.r-project.org/web/packages/rjson/index.html) 
+* [DT](https://cran.r-project.org/web/packages/DT/index.html) 
+
+## Run the Shiny application with pre-computed data
+
+To run the Shiny application using pre-computed data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9) do the following:
+1. Download the [zipped-data](https://uwmadison.box.com/s/8gxeyb7ropvi0up1ydaiy2jud0amlo0f)
+2. Unzip the folder:
+``unzip cactus_data.zip``
+3. Run Shiny application with the command:
+``Rscript runApp.R <absolute path to cactus_data>``
 
 ## Running CACTUS
 
