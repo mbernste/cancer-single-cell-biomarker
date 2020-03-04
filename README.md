@@ -49,7 +49,7 @@ To run the Shiny application using pre-computed data from [Yuan et al.](https://
 2. Unzip the folder:
 ``unzip cactus_data.zip``
 3. Run Shiny application with the command:
-``Rscript runApp.R <absolute path to cactus_data>``
+``Rscript run_app.R <absolute path to cactus_data>``
 
 ## Running CACTUS
 
