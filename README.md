@@ -14,6 +14,10 @@ CACTUS implements the following features:
 
 These analyses are all automated using a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline. 
 
+A screenshot of the CACTUS homepage: 
+
+![screenshot](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/screenshot.png) 
+
 ## Dependencies
 
 CACTUS has a number of R and Python dependencies. 
