@@ -1,35 +1,41 @@
+#
+#   Parse the counts data from the Gene Expression Omnibus for
+#   accession GSE103224. Build an H5 file storing the counts.
+#
+
 from optparse import OptionParser
 import pandas as pd
 import json
 import numpy as np
 import h5py 
+from os.path import join
 
-ROOT = '/Users/matthewbernstein/Development/single-cell-hackathon/data/GSE103224_RAW'
-OUT_F = '/Users/matthewbernstein/Development/single-cell-hackathon/data/GSE103224.h5'
 TUMOR_TO_FILE = {
-    'PJ016': '{}/GSM2758471_PJ016.filtered.matrix.txt'.format(ROOT),
-    'PJ018': '{}/GSM2758473_PJ018.filtered.matrix.txt'.format(ROOT),
-    'PJ030': '{}/GSM2758475_PJ030.filtered.matrix.txt'.format(ROOT),
-    'PJ035': '{}/GSM2758477_PJ035.filtered.matrix.txt'.format(ROOT),
-    'PJ017': '{}/GSM2758472_PJ017.filtered.matrix.txt'.format(ROOT),
-    'PJ025': '{}/GSM2758474_PJ025.filtered.matrix.txt'.format(ROOT),
-    'PJ032': '{}/GSM2758476_PJ032.filtered.matrix.txt'.format(ROOT),
-    'PJ048': '{}/GSM2940098_PJ048.filtered.matrix.txt'.format(ROOT)
+    'PJ016': 'GSM2758471_PJ016.filtered.matrix.txt',
+    'PJ018': 'GSM2758473_PJ018.filtered.matrix.txt',
+    'PJ030': 'GSM2758475_PJ030.filtered.matrix.txt',
+    'PJ035': 'GSM2758477_PJ035.filtered.matrix.txt',
+    'PJ017': 'GSM2758472_PJ017.filtered.matrix.txt',
+    'PJ025': 'GSM2758474_PJ025.filtered.matrix.txt',
+    'PJ032': 'GSM2758476_PJ032.filtered.matrix.txt',
+    'PJ048': 'GSM2940098_PJ048.filtered.matrix.txt'
 }
 
 def main():
     usage = "" # TODO 
     parser = OptionParser(usage=usage)
-    #parser.add_option("-a", "--a_descrip", action="store_true", help="This is a flat")
-    #parser.add_option("-b", "--b_descrip", help="This is an argument")
     (options, args) = parser.parse_args()
+
+    root = args[0]
+    out_f = args[1]
 
     print('Finding genes common to all datasets...')
     the_genes = None
     counts = None
     cells = []
     tumors = []
-    for tumor, tumor_f in TUMOR_TO_FILE.items():
+    for tumor, tumor_fname in TUMOR_TO_FILE.items():
+        tumor_f = join(root, tumor_fname)
         print('Loading {}...'.format(tumor_f))
         df = pd.read_csv(
             tumor_f, 
@@ -82,32 +88,13 @@ def main():
     print('done.')
 
     print('Writing to H5 file...')
-    with h5py.File(OUT_F, 'w') as f:
+    with h5py.File(out_f, 'w') as f:
         f.create_dataset('count', data=counts, compression="gzip")
         f.create_dataset('cell', data=np.array(cells))
         f.create_dataset('tumor', data=np.array(tumors))
         f.create_dataset('gene_id', data=np.array(the_genes))
         f.create_dataset('gene_name', data=np.array(gene_names))
     print('done.')
-
-
-        #print(genes[:50])
-        #assert frozenset([x.split('.')[0] for x in genes]) == frozenset([x.split('.')[0] for x in the_genes])
-        #print(len(genes))
-       # print(genes[:50])
-
-    #genes = df['Unnamed: 0']
-    #print(genes)
-
-    #df = df[keep_cols]
-    #df.rename(
-    #    index={
-    #        i: gene
-    #        for i,gene in enumerate(genes)
-    #    },
-    #    inplace=True
-    #)
-    #df.to_csv('../GSE57872_processed.tsv', sep='\t')
 
 if __name__ == '__main__':
     main()
