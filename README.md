@@ -83,7 +83,6 @@ To run this Snakemake workflow, perform the following:
 
 ## Contributors
 
-## Team
 **[Matthew	Bernstein](https://mbernste.github.io)**\
 Postdoctoral Fellow at Morgridge Institute for Research\
 
