@@ -72,7 +72,7 @@ To run this Snakemake workflow, perform the following:
 
 ### Running the data processing pipeline
 
-The [second Snakemake pipeline](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/analysis/Snakefile) implements the follwoing:
+The [second Snakemake pipeline](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/analysis/Snakefile) implements the following:
 
 ![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/dag.png)
 
@@ -83,7 +83,7 @@ To run this Snakemake workflow, perform the following:
 
 ## Contributors
 
-**[Matthew	Bernstein](https://mbernste.github.io)**\
+**[Matthew	Bernstein](https://mbernste.github.io)** 
 Postdoctoral Fellow at Morgridge Institute for Research\
 
 **Paola	Correa**\
