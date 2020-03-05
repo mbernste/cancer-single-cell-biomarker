@@ -66,7 +66,7 @@ The data download and preparation procedure is implemented by the following [Sna
 ![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/prep_data_dag.png)
 
 To run this Snakemake workflow, perform the following:
-1. Modify the [config.json](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/config.json) file to specify the paths for which CACTUS should store the raw data from [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224)
+1. Modify the [config.json](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/config.json) file to specify the paths for which CACTUS should store the raw data from [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224)
 2. Change the working directory to the [preprocessing directory](https://github.com/mbernste/cancer-single-cell-biomarker/tree/master/src/preprocess): ``cd src/preprocess``
 3. Run Snakemake: ``snakemake``
 
