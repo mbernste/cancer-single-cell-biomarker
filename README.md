@@ -80,3 +80,21 @@ To run this Snakemake workflow, perform the following:
 1. If not modified already, modify the [config.json](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/config.json) file to specify the paths for which CACTUS should store the raw data from [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224) and CACTUS's output
 2. Change the working directory to the [analysis directory](https://github.com/mbernste/cancer-single-cell-biomarker/tree/master/src/analysis): ``cd src/analysis``
 3. Run Snakemake: ``Snakemake``
+
+## Contributors
+
+## Team
+**[Matthew	Bernstein](https://mbernste.github.io)**\
+Postdoctoral Fellow at Morgridge Institute for Research\
+
+**Paola	Correa**\
+Research Associate at HHMI Janelia Research Campus
+
+**David	Morse**\
+PhD Student at the University of Cambridge and the National Institutes of Health
+
+**Johnny	Tran**\
+Machine Learning & Bioinformatics PhD-In-Training at UT Arlington
+
+**David	Mayhew**\
+Computational Bioligist at GlaxoSmithKline in Philadelphia PA
