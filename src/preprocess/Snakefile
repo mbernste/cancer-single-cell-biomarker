@@ -1,6 +1,6 @@
 #
 
-configfile: "config.json"
+configfile: "../config.json"
 
 RAW_COUNT_FILES = [
     '{}/GSM2758471_PJ016.filtered.matrix.txt'.format(config['raw_data_dir']),
@@ -27,8 +27,8 @@ ZIPPED_RAW_COUNT_FILES = [
 
 rule all:
     input:
-        '{}/GSE103224.h5'.format(config['data_dir']),
-        '{}/GSE103224_normalized.h5'.format(config['data_dir'])
+        '{}/GSE103224.h5'.format(config['output_dir']),
+        '{}/GSE103224_normalized.h5'.format(config['output_dir'])
 
 rule download_data:
     output:
@@ -63,10 +63,10 @@ rule build_GSE103224_H5:
     input:
         RAW_COUNT_FILES
     output:
-        '{}/GSE103224.h5'.format(config['data_dir'])
+        '{}/GSE103224.h5'.format(config['output_dir'])
     run:
         commands = [
-            'mkdir -p {}'.format(config['data_dir']),
+            'mkdir -p {}'.format(config['output_dir']),
             'python build_h5_GSE103224.py {raw} {{output}}'.format(
                 raw=config['raw_data_dir']
             )
@@ -76,9 +76,9 @@ rule build_GSE103224_H5:
 
 rule build_GSE103224_normalized_H5:
     input:
-        '{}/GSE103224.h5'.format(config['data_dir'])
+        '{}/GSE103224.h5'.format(config['output_dir'])
     output:
-        '{}/GSE103224_normalized.h5'.format(config['data_dir'])
+        '{}/GSE103224_normalized.h5'.format(config['output_dir'])
     run:
         shell(
             'python build_h5_GSE103224_normalized.py {input} {output}'

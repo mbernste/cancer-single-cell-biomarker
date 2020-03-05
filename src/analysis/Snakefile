@@ -11,7 +11,7 @@ TUMORS = [
     'PJ032'
 ]
 
-configfile: "config.json"
+configfile: "../config.json"
 
 PAIRWISE_ALIGNED_OUTPUTS = [
         '{}/pairwise_integrations/PJ016_PJ018.h5'.format(config['output_dir']),
@@ -167,9 +167,8 @@ rule assign_cell_types:
         )
     run:
         shell(
-            'Rscript assign_cell_types.R {data} {tmp} {data}/cell_type_markers.json'.format(
-                tmp=config['output_dir'],
-                data=config['data_dir']
+            'Rscript assign_cell_types.R {data} {data} {data}/cell_type_markers.json'.format(
+                data=config['output_dir']
             )
         )
 
@@ -179,7 +178,7 @@ rule assign_cell_types:
 
 rule align_tumors:
     input:
-        '{}/GSE103224.h5'.format(config['data_dir'])
+        '{}/GSE103224.h5'.format(config['output_dir'])
     output:
         '{}/GSE103224_aligned.h5'.format(config['output_dir'])
     run:
@@ -205,7 +204,7 @@ rule cluster_aligned_tumors:
 #############################################################
 rule align_tumors_pairwise:
     input:
-        '{}/GSE103224.h5'.format(config['data_dir'])
+        '{}/GSE103224.h5'.format(config['output_dir'])
     output:
         PAIRWISE_ALIGNED_OUTPUTS
     run:
@@ -258,9 +257,8 @@ rule run_phate_3d_all_tumors_aligned:
         '{}/all_tumors_aligned_PHATE_3.tsv'.format(config['output_dir'])
     run:
         shell(
-            'python run_phate_all_tumors_aligned.py -n 3 {tmp} {data}/tumor_metadata.json -o {tmp}'.format(
-                tmp=config['output_dir'],
-                data=config['data_dir']
+            'python run_phate_all_tumors_aligned.py -n 3 {data} {data}/tumor_metadata.json -o {data}'.format(
+                data=config['output_dir']
             )
         )
 
