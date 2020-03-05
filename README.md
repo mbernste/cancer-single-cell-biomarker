@@ -48,7 +48,7 @@ Required R packages include:
 
 ## Run the Shiny application with pre-computed data
 
-To run the Shiny application using pre-computed data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9) do the following:
+The R/Shiny application only requires the R dependencies outlined above. Once these dependencies are installed, the Shiny application can be run using pre-computed data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9) by following these steps:
 1. Download the [zipped-data](https://uwmadison.box.com/s/8gxeyb7ropvi0up1ydaiy2jud0amlo0f)
 2. Unzip the folder:
 ``unzip cactus_data.zip``
@@ -57,6 +57,12 @@ To run the Shiny application using pre-computed data from [Yuan et al.](https://
 
 ## Running CACTUS
 
-The Snakemake pipeline:
+There exist two Snakemake workflows for processing the RNA-seq data in [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9). The first downloads the raw data from [Gene Expression Omnibus](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224). The second computes all of the analyses that are viewable in the R/Shiny application. 
+
+The data download and preparation procedure is implemented by the following [Snakemake workflow](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/preprocess/Snakefile):
+
+![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/prep_data_dag.png)
+
+The [second Snakemake pipeline](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/analysis/Snakefile) implements the follwoing:
 
 ![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/dag.png)
