@@ -57,11 +57,16 @@ The R/Shiny application only requires the R dependencies outlined above. Once th
 
 ## Running CACTUS
 
-There exist two Snakemake workflows for processing the RNA-seq data in [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9). The first downloads the raw data from [Gene Expression Omnibus](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224). The second computes all of the analyses that are viewable in the R/Shiny application. 
+There exist two Snakemake workflows for processing the RNA-seq data in [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9). The first downloads the raw data from [Gene Expression Omnibus](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224) (GEO). The second computes all of the analyses that are viewable in the R/Shiny application. 
 
 The data download and preparation procedure is implemented by the following [Snakemake workflow](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/preprocess/Snakefile):
 
 ![DAG](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/prep_data_dag.png)
+
+To run this Snakemake workflow, perform the following:
+1. Modify the [config.json] file to specify the paths for which CACTUS should store the raw data from [GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE103224)
+2. Change the working directory to the [preprocessing directory](https://github.com/mbernste/cancer-single-cell-biomarker/tree/master/src/preprocess): ``cd src/preprocess``
+3. Run Snakemake: ``snakemake``
 
 The [second Snakemake pipeline](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/src/analysis/Snakefile) implements the follwoing:
 
