@@ -1,8 +1,15 @@
 import h5py
 import numpy as np
 from collections import defaultdict
+import os
+from os.path import join
+import json
 
-DATA_F = '/Users/matthewbernstein/Development/single-cell-hackathon/data/GSE103224.h5'
+SCRIPT_DIR = os.path.dirname(__file__)
+CONFIG_F = join(SCRIPT_DIR, '../config.json')
+with open(CONFIG_F, 'r') as f:
+    config = json.load(f)
+DATA_F = join(config['output_dir'], 'GSE103224.h5')
 
 # Load cell names and tumor names
 with h5py.File(DATA_F, 'r') as f:
