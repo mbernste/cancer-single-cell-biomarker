@@ -1,0 +1,5 @@
+{
+    "raw_data_dir": "/Users/matthewbernstein/Development/single-cell-hackathon/raw_data",
+    "output_dir": "/Users/matthewbernstein/Development/single-cell-hackathon/cactus_data",
+    "louvain_resolution": 0.8
+}

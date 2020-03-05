@@ -11,7 +11,7 @@ TUMORS = [
     'PJ032'
 ]
 
-configfile: "../config.json"
+configfile: "../../config.json"
 
 PAIRWISE_ALIGNED_OUTPUTS = [
         '{}/pairwise_integrations/PJ016_PJ018.h5'.format(config['output_dir']),

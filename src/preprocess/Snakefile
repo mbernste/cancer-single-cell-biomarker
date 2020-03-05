@@ -1,6 +1,6 @@
 #
 
-configfile: "../config.json"
+configfile: "../../config.json"
 
 RAW_COUNT_FILES = [
     '{}/GSM2758471_PJ016.filtered.matrix.txt'.format(config['raw_data_dir']),
