@@ -6,7 +6,7 @@ from os.path import join
 import json
 
 SCRIPT_DIR = os.path.dirname(__file__)
-CONFIG_F = join(SCRIPT_DIR, '../config.json')
+CONFIG_F = join(SCRIPT_DIR, '../../config.json')
 with open(CONFIG_F, 'r') as f:
     config = json.load(f)
 DATA_F = join(config['output_dir'], 'GSE103224.h5')
