@@ -20,22 +20,7 @@ import json
 
 sys.path.append('..')
 
-from common import load_GSE103224 
-
-TUMORS = [
-    'PJ016',
-    'PJ018',
-    'PJ048',
-    'PJ030',
-    'PJ025',
-    'PJ035',
-    'PJ017',
-    'PJ032'
-]
-
-FRAC_THRESH = 0.1
-GENE_SETS = ['GO_Biological_Process_2018']
-GSEA_THRESH = 0.05
+from common import load_GSE103224_GSE72056 as load 
 
 def main():
     usage = "" # TODO
@@ -48,42 +33,47 @@ def main():
     tumor_to_clust_to_de_genes_f = args[1]
     out_dir = options.out_dir
 
+    # Load the tumor-metadata
+    with open(join(in_dir, 'tumor_metadata.json'), 'r') as f:
+        metadata = json.load(f)
+    dataset_to_units = metadata['dataset_to_units']
+
     # Load data
     tumor_to_cluster_df = {
-        tumor: pd.read_csv(
-            join(in_dir, '{}_clusters.res_0_8.tsv'.format(tumor)),
+        ds: pd.read_csv(
+            join(in_dir, 'cluster', '{}_clusters.res_0_8.tsv'.format(ds)),
             sep='\t'
         )
-        for tumor in TUMORS
+        for ds in sorted(set(load.DATASETS))
     }
     with open(tumor_to_clust_to_de_genes_f, 'r') as f:
         tumor_to_clust_to_de_genes = json.load(f)
 
     # Load the tumor-clusters
     the_tumor_clusters = []
-    for tumor in TUMORS:
-        for cluster in set(tumor_to_cluster_df[tumor]['louvain']):
-            the_tumor_clusters.append((tumor, cluster))
+    for ds in sorted(set(load.DATASETS)):
+        for cluster in set(tumor_to_cluster_df[ds]['cluster']):
+            the_tumor_clusters.append((ds, cluster))
     the_tumor_clusters = sorted(the_tumor_clusters)
 
     # Determine which genes to consider
     the_genes = set()
-    for tumor, clust_to_de_genes in tumor_to_clust_to_de_genes.items():
+    for ds, clust_to_de_genes in tumor_to_clust_to_de_genes.items():
         for clust, de_genes in clust_to_de_genes.items():
             the_genes.update(de_genes)
     the_genes = sorted(the_genes)
     print("{} total DE genes".format(len(the_genes)))
     gene_to_index = {
         gene: ind
-        for ind, gene in enumerate(load_GSE103224.GENE_NAMES)
+        for ind, gene in enumerate(load.GENE_NAMES)
     }
 
     # Compute the fraction of
     tumor_to_ad = {}
     tumor_to_cluster_to_inds = defaultdict(lambda: {})
     da = []
-    for tumor in TUMORS:
-        counts, cells = load_GSE103224.counts_matrix_for_tumor(tumor)
+    for ds in sorted(set(load.DATASETS)):
+        counts, cells = load.counts_matrix_for_dataset(ds)
         ad = AnnData(
             X=counts,
             obs=pd.DataFrame(
@@ -91,24 +81,25 @@ def main():
                 columns=['cell']
             ),
             var=pd.DataFrame(
-                index=load_GSE103224.GENE_NAMES,
-                data=load_GSE103224.GENE_NAMES,
+                index=load.GENE_NAMES,
+                data=load.GENE_NAMES,
                 columns=['gene_name']
             )
         )
-        sc.pp.normalize_total(ad, target_sum=1e6)
-        sc.pp.log1p(ad)
+        if dataset_to_units[ds] == 'counts':
+            sc.pp.normalize_total(ad, target_sum=1e6)
+            sc.pp.log1p(ad)
 
-        grouped = tumor_to_cluster_df[tumor].groupby('louvain')
+        grouped = tumor_to_cluster_df[ds].groupby('cluster')
         for clust, group in grouped:
-            print("Examining tumor {}, cluster {}".format(tumor, clust))
-            row = ["{}_{}".format(tumor, clust)]
+            print("Examining tumor {}, cluster {}".format(ds, clust))
+            row = ["{}_{}".format(ds, clust)]
             indices = [int(x) for x in group.index]
             X_clust = clust_X = ad.X[indices]
             for gene in the_genes:
                 X_gene = X_clust.T[gene_to_index[gene]]
                 frac_nonzero = len([x for x in X_gene if x > 0]) / len(X_gene)
-                if gene in tumor_to_clust_to_de_genes[tumor][str(clust)]:
+                if gene in tumor_to_clust_to_de_genes[ds][str(clust)]:
                     row.append(frac_nonzero)
                 else:
                     row.append(0.0)
@@ -126,7 +117,7 @@ def _fraction_of_cells_expressing_biomarker_per_cluster(
     ):
     print('Computing fractions for gene {}'.format(gene))
     tumor_to_clust_to_frac_expr = defaultdict(lambda: {})
-    for tumor in TUMORS:
+    for tumor in sorted(set(load.DATASETS)):
         ad = tumor_to_ad[tumor]
         for clust, indices in tumor_to_cluster_to_inds[tumor].items():
             clust_X = ad.X[indices]

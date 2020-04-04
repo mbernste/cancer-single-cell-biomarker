@@ -15,17 +15,48 @@ library(DT)
 #DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp_test'
 ###################################################################################
 
-TUMORS = c('PJ016', 'PJ018', 'PJ025', 'PJ048', 'PJ030', 'PJ035', 'PJ017', 'PJ032')
+TUMORS = c(
+    'PJ016', 
+    'PJ018', 
+    'PJ025', 
+    'PJ048', 
+    'PJ030', 
+    'PJ035', 
+    'PJ017', 
+    'PJ032', 
+    'Mel79',
+    'Mel84',
+    'Mel59',
+    'Mel82',
+    'Mel74',
+    'Mel53',
+    'Mel80',
+    'Mel94',
+    'Mel78',
+    'Mel72',
+    'Mel65',
+    'Mel75',
+    'Mel81',
+    'Mel60',
+    'Mel89',
+    'Mel71',
+    'Mel88',
+    'Mel67',
+    'Mel58'
+)
 
-de_genes_json <- paste0(DATA_DIR, "/cluster_de_genes.json")
+COORDS = c('PHATE', 'UMAP')
+DB_FILENAME = 'GSE103224_GSE72056_normalized.h5'
+
+de_genes_json <- paste0(DATA_DIR, "/cluster/cluster_de_genes.json")
 print(de_genes_json)
 de_data <- fromJSON(file = de_genes_json)
 
 print('Loading counts data...')
-counts = h5read(paste0(DATA_DIR, "/GSE103224_normalized.h5"),"count")
-cells = h5read(paste0(DATA_DIR, "/GSE103224_normalized.h5"), "cell")
-tumor_ids = h5read(paste0(DATA_DIR, "/GSE103224_normalized.h5"), "tumor")
-genes = h5read(paste0(DATA_DIR, "/GSE103224_normalized.h5"), "gene_name")
+counts = h5read(paste0(DATA_DIR, '/', DB_FILENAME),"count")
+cells = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "cell")
+tumor_ids = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "dataset")
+genes = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "gene_name")
 counts <- t(counts)
 counts <- data.frame(counts)
 rownames(counts) <- cells
@@ -34,12 +65,12 @@ print('done.')
 
 # Load the GSEA data
 gsea_df <- read.csv(
-    paste0(DATA_DIR, "/gsea_results.tsv"),
+    paste0(DATA_DIR, "/cluster/gsea_results.tsv"),
     sep = '\t',
     header = TRUE
 )
 gsea_full_df <- read.csv(
-    paste0(DATA_DIR, "/gsea_binary_matrix.tsv"),
+    paste0(DATA_DIR, "/cluster/gsea_binary_matrix.tsv"),
     sep = '\t',
     header = TRUE,
     row.names = 1
@@ -47,7 +78,7 @@ gsea_full_df <- read.csv(
 
 # Load tumor-cluster 'expression' data
 tumor_clust_expr_df <- read.csv(
-    paste0(DATA_DIR, "/tumor_cluster_gene_expression.tsv"),
+    paste0(DATA_DIR, "/cluster/tumor_cluster_gene_expression.tsv"),
     sep = '\t',
     header = TRUE
 )
@@ -78,13 +109,25 @@ for (tumor in TUMORS) {
         row.names = 1
     )
     colnames(phate_df) <- c('PHATE1', 'PHATE2', 'PHATE3')
+    umap_df <- read.csv(
+        file=paste0(DATA_DIR, '/umap/', tumor, '_UMAP_3.tsv'),
+        sep = '\t',
+        header = TRUE,
+        row.names = 1
+    )
+    colnames(umap_df) <- c('UMAP1', 'UMAP2', 'UMAP3')
     print(length(tumor_cells))
     print(nrow(phate_df))
     rownames(phate_df) <- tumor_cells
     print('done.')
 
     clust_df <- read.csv(
-        file=paste0(DATA_DIR, '/', tumor, '_clusters.res_0_8.tsv'),
+        file=paste0(
+            DATA_DIR, 
+            '/cluster/', 
+            tumor, 
+            '_clusters.res_0_8.tsv'
+        ),
         sep = '\t',
         header = TRUE
     )
@@ -98,47 +141,123 @@ for (tumor in TUMORS) {
     tumor_counts$PHATE1 <- phate_df$PHATE1
     tumor_counts$PHATE2 <- phate_df$PHATE2
     tumor_counts$PHATE3 <- phate_df$PHATE3
+    tumor_counts$UMAP1 <- umap_df$UMAP1
+    tumor_counts$UMAP2 <- umap_df$UMAP2
+    tumor_counts$UMAP3 <- umap_df$UMAP3
     tumor_counts$cluster <- as.character(clust_df$cluster)
 
     #print('done.')
     tumor_dfs[[tumor]] <- tumor_counts
 }
 
+##################################################################
 # Load the PHATE coordinates for the aligned tumors
-all_aligned_df <- read.csv(
-    paste0(DATA_DIR, '/all_tumors_aligned_PHATE_3.tsv'),
+##################################################################
+glioma_aligned_phate_df <- read.csv(
+    paste0(DATA_DIR, '/dim_reduc/glioma_aligned_PHATE_3.tsv'),
     sep = '\t',
     header = TRUE,
     row.names = 1
 )
-print(colnames(all_aligned_df))
-all_aligned_df$cluster <- as.character(all_aligned_df$cluster)
+glioma_aligned_umap_df <- read.csv(
+    paste0(DATA_DIR, '/dim_reduc/glioma_aligned_UMAP_3.tsv'),
+    sep = '\t',
+    header = TRUE,
+    row.names = 1
+)
+melanoma_aligned_phate_df <- read.csv(
+    paste0(DATA_DIR, '/dim_reduc/melanoma_aligned_PHATE_3.tsv'),
+    sep = '\t',
+    header = TRUE,
+    row.names = 1
+)
+melanoma_aligned_umap_df <- read.csv(
+    paste0(DATA_DIR, '/dim_reduc/melanoma_aligned_UMAP_3.tsv'),
+    sep = '\t',
+    header = TRUE,
+    row.names = 1
+)
+#print(colnames(all_aligned_df))
+#all_aligned_df$cluster <- as.character(all_aligned_df$cluster)
+print('Merging dimension reduction dataframes...')
 aligned_dfs <- list()
-aligned_dfs[['All']] <- all_aligned_df
-for (tumor_i in names(tumor_dfs)) {
-    for (tumor_j in names(tumor_dfs)) {
-        if (tumor_i == tumor_j) {
-            break
-        }
-        print(paste("Loading alignment data for tumor", tumor_i, "and", tumor_j))
-        a_df <- read.csv(
-            paste0(DATA_DIR, '/pairwise_integrations_PHATE/', tumor_i, '_', tumor_j, '_aligned_PHATE_3.tsv'),
-            sep = '\t',
-            header = TRUE,
-            row.names = 1
-        )
-        aligned_dfs[[paste0(tumor_i,'_', tumor_j)]] <- a_df
-    }
-}
+#print(rownames(glioma_aligned_phate_df))
+#print('OKAY...')
+#print(rownames(glioma_aligned_umap_df))
+aligned_dfs[['glioma']] <- transform(merge(glioma_aligned_phate_df, glioma_aligned_umap_df, by=0), row.names=Row.names, Row.names=NULL)
+
+#aligned_dfs[['glioma']]$cell <- glioma_aligned_phate_df$cell
+#aligned_dfs[['glioma']]$PHATE1 <- glioma_aligned_phate_df$PHATE1
+#aligned_dfs[['glioma']]$PHATE2 <- glioma_aligned_phate_df$PHATE2
+#aligned_dfs[['glioma']]$PHATE3 <- glioma_aligned_phate_df$PHATE3
+#aligned_dfs[['glioma']]$UMAP1 <- glioma_aligned_umap_df$UMAP1
+#aligned_dfs[['glioma']]$UMAP2 <- glioma_aligned_umap_df$UMAP2
+#aligned_dfs[['glioma']]$UMAP3 <- glioma_aligned_umap_df$UMAP3
+
+aligned_dfs[['melanoma']] <- transform(merge(melanoma_aligned_phate_df, melanoma_aligned_umap_df, by=0), row.names=Row.names, Row.names=NULL)
+print('done.')
+
+#aligned_dfs[['melanoma']]$PHATE1 <- melanoma_aligned_phate_df$PHATE1
+#aligned_dfs[['melanoma']]$PHATE2 <- melanoma_aligned_phate_df$PHATE2
+#aligned_dfs[['melanoma']]$PHATE3 <- melanoma_aligned_phate_df$PHATE3
+#aligned_dfs[['melanoma']]$UMAP1 <- melanoma_aligned_umap_df$UMAP1
+#aligned_dfs[['melanoma']]$UMAP2 <- melanoma_aligned_umap_df$UMAP2
+#aligned_dfs[['melanoma']]$UMAP3 <- melanoma_aligned_umap_df$UMAP3
+
+aligned_counts_df <- list()
+aligned_counts_df[['glioma']] <- counts[rownames(aligned_dfs[['glioma']]),]
+aligned_counts_df[['melanoma']] <- counts[rownames(aligned_dfs[['melanoma']]),]
+
+print('Dimension of aligned count data:')
+print(dim(aligned_counts_df[['glioma']]))
+
+#aligned_dfs[['All']] <- all_aligned_df
+#for (tumor_i in names(tumor_dfs)) {
+#    for (tumor_j in names(tumor_dfs)) {
+#        if (tumor_i == tumor_j) {
+#            break
+#        }
+#        print(paste(
+#            "Loading alignment data for tumor", 
+#            tumor_i, 
+#            "and", 
+#            tumor_j
+#        ))
+#        a_df <- read.csv(
+#            paste0(
+#                DATA_DIR, 
+#                '/pairwise_integrations_PHATE/', 
+#                tumor_i, 
+#                '_', 
+#                tumor_j, 
+#                '_aligned_PHATE_3.tsv'
+#            ),
+#            sep = '\t',
+#            header = TRUE,
+#            row.names = 1
+#        )
+#        aligned_dfs[[paste0(tumor_i,'_', tumor_j)]] <- a_df
+#    }
+#}
 
 server <- function(input, output) {
     output$plot1 <- renderPlotly({
+        if (input$coords1 == 'PHATE') {
+            px <- tumor_dfs[[input$tumor1]]$PHATE1
+            py <- tumor_dfs[[input$tumor1]]$PHATE2
+            pz <- tumor_dfs[[input$tumor1]]$PHATE3
+        }
+        else if (input$coords1 == 'UMAP') {
+            px <- tumor_dfs[[input$tumor1]]$UMAP1
+            py <- tumor_dfs[[input$tumor1]]$UMAP2
+            pz <- tumor_dfs[[input$tumor1]]$UMAP3            
+        }
         if (input$colorby1 != 'cluster') {
             plot_ly(
                 tumor_dfs[[input$tumor1]], 
-                x = tumor_dfs[[input$tumor1]]$PHATE1, 
-                y = tumor_dfs[[input$tumor1]]$PHATE2, 
-                z = tumor_dfs[[input$tumor1]]$PHATE3, 
+                x = px, 
+                y = py, 
+                z = pz, 
                 height = 700,
                 marker = list(
                     color = tumor_dfs[[input$tumor1]][[input$colorby1]], 
@@ -159,9 +278,9 @@ server <- function(input, output) {
         else {
             plot_ly(
                 tumor_dfs[[input$tumor1]],
-                x = tumor_dfs[[input$tumor1]]$PHATE1,
-                y = tumor_dfs[[input$tumor1]]$PHATE2,
-                z = tumor_dfs[[input$tumor1]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 color = tumor_dfs[[input$tumor1]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor1]][['cluster']])), "Set1"),
                 height = 700,
@@ -178,12 +297,24 @@ server <- function(input, output) {
         }
     })
     output$plot2 <- renderPlotly({
+        if (input$coords2 == 'PHATE') {
+            px <- tumor_dfs[[input$tumor2]]$PHATE1
+            py <- tumor_dfs[[input$tumor2]]$PHATE2
+            pz <- tumor_dfs[[input$tumor2]]$PHATE3
+            units <- 'PHATE'
+        }
+        else if (input$coords2 == 'UMAP') {
+            px <- tumor_dfs[[input$tumor2]]$UMAP1
+            py <- tumor_dfs[[input$tumor2]]$UMAP2
+            pz <- tumor_dfs[[input$tumor2]]$UMAP3
+            units <- 'UMAP'
+        }
         if (input$colorby2 != 'cluster') {
             plot_ly(
                 tumor_dfs[[input$tumor2]],
-                x = tumor_dfs[[input$tumor2]]$PHATE1,
-                y = tumor_dfs[[input$tumor2]]$PHATE2,
-                z = tumor_dfs[[input$tumor2]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 height = 700,
                 marker = list(
                     color = tumor_dfs[[input$tumor2]][[input$colorby2]], 
@@ -196,18 +327,18 @@ server <- function(input, output) {
             layout(
                 title = "\nPlot 2",
                 titlefont = list(family = "arial", size = 25),
-                scene = list(xaxis = list(title = 'PHATE 1')),
-                yaxis = list(title = 'PHATE 2'),
-                zaxis = list(title = 'PHATE 3')
+                scene = list(xaxis = list(title = paste(units, '1'))),
+                yaxis = list(title = paste(units, '2')),
+                zaxis = list(title = paste(units, '3'))
             )
         }
         else {
             plot_ly(
                 tumor_dfs[[input$tumor2]],
-                x = tumor_dfs[[input$tumor2]]$PHATE1,
-                y = tumor_dfs[[input$tumor2]]$PHATE2,
-                z = tumor_dfs[[input$tumor2]]$PHATE3,
-                color = tumor_dfs[[input$tumor1]][['cluster']],
+                x = px,
+                y = py,
+                z = pz,
+                color = tumor_dfs[[input$tumor2]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor2]][['cluster']])), "Set1"),
                 height = 700,
                 marker = list(size = 3)
@@ -216,21 +347,31 @@ server <- function(input, output) {
                 layout(
                     title = "\nPlot 2",
                     titlefont = list(family = "arial", size = 25),
-                    scene = list(xaxis = list(title = 'PHATE 1'),
-                    yaxis = list(title = 'PHATE 2'),
-                    zaxis = list(title = 'PHATE 3')
+                    scene = list(xaxis = list(title = paste(units, '1')),
+                    yaxis = list(title = paste(units, '2')),
+                    zaxis = list(title = paste(units, '3'))
                 )
             )
         }
 
     })
     output$plot3 <- renderPlotly({
+        if (input$coords3 == 'PHATE') {
+            px <- tumor_dfs[[input$tumor3]]$PHATE1
+            py <- tumor_dfs[[input$tumor3]]$PHATE2
+            pz <- tumor_dfs[[input$tumor3]]$PHATE3
+        }
+        else if (input$coords3 == 'UMAP') {
+            px <- tumor_dfs[[input$tumor3]]$UMAP1
+            py <- tumor_dfs[[input$tumor3]]$UMAP2
+            pz <- tumor_dfs[[input$tumor3]]$UMAP3
+        }
         if (input$colorby3 != 'cluster') {
             plot_ly(
                 tumor_dfs[[input$tumor3]],
-                x = tumor_dfs[[input$tumor3]]$PHATE1,
-                y = tumor_dfs[[input$tumor3]]$PHATE2,
-                z = tumor_dfs[[input$tumor3]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 height = 700,
                 marker = list(
                     color = tumor_dfs[[input$tumor3]][[input$colorby3]], 
@@ -251,9 +392,9 @@ server <- function(input, output) {
         else {
             plot_ly(
                 tumor_dfs[[input$tumor3]],
-                x = tumor_dfs[[input$tumor3]]$PHATE1,
-                y = tumor_dfs[[input$tumor3]]$PHATE2,
-                z = tumor_dfs[[input$tumor3]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 color = tumor_dfs[[input$tumor3]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor3]][['cluster']])), "Set1"),
                 height = 700,
@@ -272,12 +413,22 @@ server <- function(input, output) {
 
     })
     output$plot4 <- renderPlotly({
+        if (input$coords4 == 'PHATE') {
+            px <- tumor_dfs[[input$tumor4]]$PHATE1
+            py <- tumor_dfs[[input$tumor4]]$PHATE2
+            pz <- tumor_dfs[[input$tumor4]]$PHATE3
+        }
+        else if (input$coords4 == 'UMAP') {
+            px <- tumor_dfs[[input$tumor4]]$UMAP1
+            py <- tumor_dfs[[input$tumor4]]$UMAP2
+            pz <- tumor_dfs[[input$tumor4]]$UMAP3
+        }
         if (input$colorby4 != 'cluster') {
             plot_ly(
                 tumor_dfs[[input$tumor4]],
-                x = tumor_dfs[[input$tumor4]]$PHATE1,
-                y = tumor_dfs[[input$tumor4]]$PHATE2,
-                z = tumor_dfs[[input$tumor4]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 height = 700,
                 marker = list(
                     color = tumor_dfs[[input$tumor4]][[input$colorby4]], 
@@ -298,9 +449,9 @@ server <- function(input, output) {
         else {
             plot_ly(
                 tumor_dfs[[input$tumor4]],
-                x = tumor_dfs[[input$tumor4]]$PHATE1,
-                y = tumor_dfs[[input$tumor4]]$PHATE2,
-                z = tumor_dfs[[input$tumor4]]$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 color = tumor_dfs[[input$tumor4]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor4]][['cluster']])), "Set1"),
                 height = 700,
@@ -353,13 +504,23 @@ server <- function(input, output) {
     output$aligned_plot1 <- renderPlotly({
         colby <- input$aligned_colorby1
         aligned_df <- aligned_dfs[[input$aligned1]]
+        if (input$coords_aligned1 == 'PHATE') {
+            px <- aligned_df$PHATE1
+            py <- aligned_df$PHATE2
+            pz <- aligned_df$PHATE3
+        }
+        else if (input$coords_aligned1 == 'UMAP') {
+            px <- aligned_df$UMAP1
+            py <- aligned_df$UMAP2
+            pz <- aligned_df$UMAP3
+        }
         if (colby == 'tumor' | colby == 'subtype' | colby == 'cluster') {
             curr_df <- aligned_df
             plot_ly(
                 curr_df,
-                x = curr_df$PHATE1,
-                y = curr_df$PHATE2,
-                z = curr_df$PHATE3,
+                x = px,
+                y = py,
+                z = pz,
                 color = curr_df[[colby]],
                 colors = brewer.pal(length(unique(curr_df[[colby]])), "Set1"),
                 #colors = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999"),
@@ -373,16 +534,23 @@ server <- function(input, output) {
             )
         }
         else {
-            gene_df <- counts[toString(input$aligned_colorby1)]
-            rownames(gene_df) <- cells
-            curr_df <- merge(aligned_df, gene_df, by=0)
+            aligned_df <- aligned_dfs[[input$aligned1]]
+            #gene_df <- counts[toString(input$aligned_colorby1)]
+            #rownames(gene_df) <- cells
+            #curr_df <- merge(aligned_df, gene_df, by=0)
             plot_ly(
-                curr_df,
-                x = curr_df$PHATE1,
-                y = curr_df$PHATE2,
-                z = curr_df$PHATE3,
+                aligned_df,
+                x = px,
+                y = py,
+                z = pz,
                 height = 700,
-                marker = list(color = curr_df[[colby]], colorscale = 'Viridis', showscale = TRUE, size = 2)
+                marker = list(
+                    #color = curr_df[[colby]],
+                    color = aligned_counts_df[[input$aligned1]][[colby]], 
+                    colorscale = 'Viridis', 
+                    showscale = TRUE, 
+                    size = 2
+                )
             ) %>% add_markers() %>% layout(
                 scene = list(
                     xaxis = list(title = 'PHATE 1'),
@@ -395,6 +563,16 @@ server <- function(input, output) {
     output$aligned_plot2 <- renderPlotly({
         colby <- input$aligned_colorby2
         aligned_df <- aligned_dfs[[input$aligned2]]
+        if (input$coords_aligned2 == 'PHATE') {
+            px <- aligned_df$PHATE1
+            py <- aligned_df$PHATE2
+            pz <- aligned_df$PHATE3
+        }
+        else if (input$coords_aligned2 == 'UMAP') {
+            px <- aligned_df$UMAP1
+            py <- aligned_df$UMAP2
+            pz <- aligned_df$UMAP3
+        }
         if (colby == 'tumor' | colby == 'subtype' | colby == 'cluster') {
             curr_df <- aligned_df
             plot_ly(
@@ -404,7 +582,6 @@ server <- function(input, output) {
                 z = curr_df$PHATE3,
                 color = curr_df[[colby]],
                 colors = brewer.pal(length(unique(curr_df[[colby]])), "Set1"),
-                #colors = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999"),
                 height = 700,
                 marker = list(size = 2)
                 ) %>% add_markers() %>% layout(
@@ -415,17 +592,19 @@ server <- function(input, output) {
             )
         }
         else{
-            gene_df <- counts[toString(input$aligned_colorby2)]
-            rownames(gene_df) <- cells
-            curr_df <- merge(aligned_df, gene_df, by=0)
+            aligned_df <- aligned_dfs[[input$aligned2]]
+            #gene_df <- counts[toString(input$aligned_colorby2)]
+            #rownames(gene_df) <- cells
+            #curr_df <- merge(aligned_df, gene_df, by=0)
             plot_ly(
-                curr_df,
-                x = curr_df$PHATE1,
-                y = curr_df$PHATE2,
-                z = curr_df$PHATE3,
+                aligned_df,
+                x = px,
+                y = py,
+                z = pz,
                 height = 700,
                 marker = list(
-                    color = curr_df[[colby]], 
+                    #color = curr_df[[colby]],
+                    color = aligned_counts_df[[input$aligned2]][[colby]],
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
                     size = 2
@@ -458,21 +637,25 @@ server <- function(input, output) {
 ui <- fluidPage(
 
   # App title ----
-  titlePanel(title=div("CACTUS: CharACterizing TUmor Subpopulations", img(src="Cactus.png", height=60, width=40))),
+  titlePanel(title=div("CHARTS: CHARacterizing Tumor Subpopulations", img(src="Logo2.png", height=80, width=80))),
 
   tabsetPanel(
         tabPanel("Individual tumors", 
             sidebarLayout(
                 sidebarPanel(
                     selectInput("tumor1", "Plot 1 dataset:", TUMORS),
-                    textInput("colorby1", "Select gene:", value = "OLIG1"), 
+                    textInput("colorby1", "Select gene:", value = "OLIG1"),
+                    selectInput("coords1", "Select coordinates:", COORDS), 
                     textInput("size_plot1", "Dot size", value = 3),
                     selectInput("tumor2", "Plot 2 dataset:", TUMORS),
-                    textInput("colorby2", "Select gene:", value = "STMN2"), 
+                    textInput("colorby2", "Select gene:", value = "STMN2"),
+                    selectInput("coords2", "Select coordinates:", COORDS), 
                     selectInput("tumor3", "Plot 3 dataset:", TUMORS),
                     textInput("colorby3", "Select gene:", value = "MOG"),
+                    selectInput("coords3", "Select coordinates:", COORDS),
                     selectInput("tumor4", "Plot 4 dataset:", TUMORS),
                     textInput("colorby4", "Select gene:", value = "GFAP"),
+                    selectInput("coords4", "Select coordinates:", COORDS),
                     width=2
                 ),               
                 mainPanel(
@@ -500,9 +683,13 @@ ui <- fluidPage(
            sidebarLayout(
                 sidebarPanel(
                     selectInput("aligned1", "Plot 1 dataset:", names(aligned_dfs)),
-                    textInput("aligned_colorby1", "Plot 1, color by:", value = "tumor"),
+                    selectInput("aligned_colorby1", "Plot 1, color by:", genes),
+                    selectInput("coords_aligned1", "Select coordinates:", COORDS),
+                    #textInput("aligned_colorby1", "Plot 1, color by:", value = "tumor"),
                     selectInput("aligned2", "Plot 2 dataset:", names(aligned_dfs)),
-                    textInput("aligned_colorby2", "Plot 2, color by:", value = "GFAP"),
+                    selectInput("aligned_colorby2", "Plot 2, color by:", genes),
+                    #textInput("aligned_colorby2", "Plot 2, color by:", value = "GFAP"),
+                    selectInput("coords_aligned2", "Select coordinates:", COORDS),
                     width=2
                 ),
                 mainPanel(
