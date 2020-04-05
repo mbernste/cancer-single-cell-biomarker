@@ -15,38 +15,12 @@ library(DT)
 #DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp_test'
 ###################################################################################
 
-TUMORS = c(
-    'PJ016', 
-    'PJ018', 
-    'PJ025', 
-    'PJ048', 
-    'PJ030', 
-    'PJ035', 
-    'PJ017', 
-    'PJ032', 
-    'Mel79',
-    'Mel84',
-    'Mel59',
-    'Mel82',
-    'Mel74',
-    'Mel53',
-    'Mel80',
-    'Mel94',
-    'Mel78',
-    'Mel72',
-    'Mel65',
-    'Mel75',
-    'Mel81',
-    'Mel60',
-    'Mel89',
-    'Mel71',
-    'Mel88',
-    'Mel67',
-    'Mel58'
-)
-
 COORDS = c('PHATE', 'UMAP')
 DB_FILENAME = 'GSE103224_GSE72056_normalized.h5'
+
+# Load meatadata
+meta_df <- fromJSON(file = paste0(DATA_DIR, '/tumor_metadata.json'))
+TUMORS <- meta_df[['datasets']]
 
 de_genes_json <- paste0(DATA_DIR, "/cluster/cluster_de_genes.json")
 print(de_genes_json)
@@ -153,63 +127,25 @@ for (tumor in TUMORS) {
 ##################################################################
 # Load the PHATE coordinates for the aligned tumors
 ##################################################################
-glioma_aligned_phate_df <- read.csv(
-    paste0(DATA_DIR, '/dim_reduc/glioma_aligned_PHATE_3.tsv'),
-    sep = '\t',
-    header = TRUE,
-    row.names = 1
-)
-glioma_aligned_umap_df <- read.csv(
-    paste0(DATA_DIR, '/dim_reduc/glioma_aligned_UMAP_3.tsv'),
-    sep = '\t',
-    header = TRUE,
-    row.names = 1
-)
-melanoma_aligned_phate_df <- read.csv(
-    paste0(DATA_DIR, '/dim_reduc/melanoma_aligned_PHATE_3.tsv'),
-    sep = '\t',
-    header = TRUE,
-    row.names = 1
-)
-melanoma_aligned_umap_df <- read.csv(
-    paste0(DATA_DIR, '/dim_reduc/melanoma_aligned_UMAP_3.tsv'),
-    sep = '\t',
-    header = TRUE,
-    row.names = 1
-)
-#print(colnames(all_aligned_df))
-#all_aligned_df$cluster <- as.character(all_aligned_df$cluster)
-print('Merging dimension reduction dataframes...')
+
 aligned_dfs <- list()
-#print(rownames(glioma_aligned_phate_df))
-#print('OKAY...')
-#print(rownames(glioma_aligned_umap_df))
-aligned_dfs[['glioma']] <- transform(merge(glioma_aligned_phate_df, glioma_aligned_umap_df, by=0), row.names=Row.names, Row.names=NULL)
-
-#aligned_dfs[['glioma']]$cell <- glioma_aligned_phate_df$cell
-#aligned_dfs[['glioma']]$PHATE1 <- glioma_aligned_phate_df$PHATE1
-#aligned_dfs[['glioma']]$PHATE2 <- glioma_aligned_phate_df$PHATE2
-#aligned_dfs[['glioma']]$PHATE3 <- glioma_aligned_phate_df$PHATE3
-#aligned_dfs[['glioma']]$UMAP1 <- glioma_aligned_umap_df$UMAP1
-#aligned_dfs[['glioma']]$UMAP2 <- glioma_aligned_umap_df$UMAP2
-#aligned_dfs[['glioma']]$UMAP3 <- glioma_aligned_umap_df$UMAP3
-
-aligned_dfs[['melanoma']] <- transform(merge(melanoma_aligned_phate_df, melanoma_aligned_umap_df, by=0), row.names=Row.names, Row.names=NULL)
-print('done.')
-
-#aligned_dfs[['melanoma']]$PHATE1 <- melanoma_aligned_phate_df$PHATE1
-#aligned_dfs[['melanoma']]$PHATE2 <- melanoma_aligned_phate_df$PHATE2
-#aligned_dfs[['melanoma']]$PHATE3 <- melanoma_aligned_phate_df$PHATE3
-#aligned_dfs[['melanoma']]$UMAP1 <- melanoma_aligned_umap_df$UMAP1
-#aligned_dfs[['melanoma']]$UMAP2 <- melanoma_aligned_umap_df$UMAP2
-#aligned_dfs[['melanoma']]$UMAP3 <- melanoma_aligned_umap_df$UMAP3
-
 aligned_counts_df <- list()
-aligned_counts_df[['glioma']] <- counts[rownames(aligned_dfs[['glioma']]),]
-aligned_counts_df[['melanoma']] <- counts[rownames(aligned_dfs[['melanoma']]),]
-
-print('Dimension of aligned count data:')
-print(dim(aligned_counts_df[['glioma']]))
+for (integ_set_name in names(meta_df$integration_sets)) {
+    phate_df <- read.csv(
+        paste0(DATA_DIR, '/dim_reduc/', integ_set_name, '_aligned_PHATE_3.tsv'),
+        sep = '\t',
+        header = TRUE,
+        row.names = 1
+    )
+    umap_df <- read.csv(    
+        paste0(DATA_DIR, '/dim_reduc/', integ_set_name, '_aligned_UMAP_3.tsv'),
+        sep = '\t',
+        header = TRUE,
+        row.names = 1
+    )
+    aligned_dfs[[integ_set_name]] <- transform(merge(phate_df, umap_df, by=0), row.names=Row.names, Row.names=NULL)
+    aligned_counts_df[[integ_set_name]] <- counts[rownames(aligned_dfs[[integ_set_name]]),]
+}
 
 #aligned_dfs[['All']] <- all_aligned_df
 #for (tumor_i in names(tumor_dfs)) {
@@ -284,7 +220,7 @@ server <- function(input, output) {
                 color = tumor_dfs[[input$tumor1]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor1]][['cluster']])), "Set1"),
                 height = 700,
-                marker = list(size = 3)
+                marker = list(size = input$size_plot1)
             ) %>% 
             add_markers() %>% 
             layout(
@@ -297,17 +233,16 @@ server <- function(input, output) {
         }
     })
     output$plot2 <- renderPlotly({
-        if (input$coords2 == 'PHATE') {
+        units <- input$coords2
+        if (units == 'PHATE') {
             px <- tumor_dfs[[input$tumor2]]$PHATE1
             py <- tumor_dfs[[input$tumor2]]$PHATE2
             pz <- tumor_dfs[[input$tumor2]]$PHATE3
-            units <- 'PHATE'
         }
-        else if (input$coords2 == 'UMAP') {
+        else if (units == 'UMAP') {
             px <- tumor_dfs[[input$tumor2]]$UMAP1
             py <- tumor_dfs[[input$tumor2]]$UMAP2
             pz <- tumor_dfs[[input$tumor2]]$UMAP3
-            units <- 'UMAP'
         }
         if (input$colorby2 != 'cluster') {
             plot_ly(
@@ -320,7 +255,7 @@ server <- function(input, output) {
                     color = tumor_dfs[[input$tumor2]][[input$colorby2]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 3
+                    size = input$size_plot2
                 )
             ) %>% 
             add_markers() %>% 
@@ -341,13 +276,14 @@ server <- function(input, output) {
                 color = tumor_dfs[[input$tumor2]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor2]][['cluster']])), "Set1"),
                 height = 700,
-                marker = list(size = 3)
-                ) %>% 
-                add_markers() %>% 
-                layout(
-                    title = "\nPlot 2",
-                    titlefont = list(family = "arial", size = 25),
-                    scene = list(xaxis = list(title = paste(units, '1')),
+                marker = list(size = input$size_plot2)
+            ) %>% 
+            add_markers() %>% 
+            layout(
+                title = "\nPlot 2",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(
+                    xaxis = list(title = paste(units, '1')),
                     yaxis = list(title = paste(units, '2')),
                     zaxis = list(title = paste(units, '3'))
                 )
@@ -377,14 +313,15 @@ server <- function(input, output) {
                     color = tumor_dfs[[input$tumor3]][[input$colorby3]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 3
+                    size = input$size_plot3
                 )
             ) %>% 
             add_markers() %>% 
             layout(
                 title = "\nPlot 3",
                 titlefont = list(family = "arial", size = 25),
-                scene = list(xaxis = list(title = 'PHATE 1')),
+                scene = list(
+                xaxis = list(title = 'PHATE 1')),
                 yaxis = list(title = 'PHATE 2'),
                 zaxis = list(title = 'PHATE 3')
             )
@@ -398,13 +335,14 @@ server <- function(input, output) {
                 color = tumor_dfs[[input$tumor3]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor3]][['cluster']])), "Set1"),
                 height = 700,
-                marker = list(size = 3)
+                marker = list(size = input$size_plot3)
             ) %>% 
             add_markers() %>% 
             layout(
-                    title = "\nPlot 3",
-                    titlefont = list(family = "arial", size = 25),
-                    scene = list(xaxis = list(title = 'PHATE 1'),
+                title = "\nPlot 3",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(
+                    xaxis = list(title = 'PHATE 1'),
                     yaxis = list(title = 'PHATE 2'),
                     zaxis = list(title = 'PHATE 3')
                 )
@@ -413,12 +351,13 @@ server <- function(input, output) {
 
     })
     output$plot4 <- renderPlotly({
-        if (input$coords4 == 'PHATE') {
+        units <- input$coords4
+        if (units == 'PHATE') {
             px <- tumor_dfs[[input$tumor4]]$PHATE1
             py <- tumor_dfs[[input$tumor4]]$PHATE2
             pz <- tumor_dfs[[input$tumor4]]$PHATE3
         }
-        else if (input$coords4 == 'UMAP') {
+        else if (units == 'UMAP') {
             px <- tumor_dfs[[input$tumor4]]$UMAP1
             py <- tumor_dfs[[input$tumor4]]$UMAP2
             pz <- tumor_dfs[[input$tumor4]]$UMAP3
@@ -434,16 +373,18 @@ server <- function(input, output) {
                     color = tumor_dfs[[input$tumor4]][[input$colorby4]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 3
+                    size = input$size_plot4
                 )
             ) %>% 
             add_markers() %>% 
             layout(
                 title = "\nPlot 4",
                 titlefont = list(family = "arial", size = 25),
-                scene = list(xaxis = list(title = 'PHATE 1')),
-                yaxis = list(title = 'PHATE 2'),
-                zaxis = list(title = 'PHATE 3')
+                scene = list(
+                    xaxis = list(title = 'PHATE 1'),
+                    yaxis = list(title = 'PHATE 2'),
+                    zaxis = list(title = 'PHATE 3')
+                )
             )
         }
         else {
@@ -455,13 +396,14 @@ server <- function(input, output) {
                 color = tumor_dfs[[input$tumor4]][['cluster']],
                 colors = brewer.pal(length(unique(tumor_dfs[[input$tumor4]][['cluster']])), "Set1"),
                 height = 700,
-                marker = list(size = 3)
-                ) %>% 
-                add_markers() %>% 
-                layout(
-                    title = "\nPlot 4",
-                    titlefont = list(family = "arial", size = 25),
-                    scene = list(xaxis = list(title = 'PHATE 1'),
+                marker = list(size = input$size_plot4)
+            ) %>% 
+            add_markers() %>% 
+            layout(
+                title = "\nPlot 4",
+                titlefont = list(family = "arial", size = 25),
+                scene = list(
+                    xaxis = list(title = 'PHATE 1'),
                     yaxis = list(title = 'PHATE 2'),
                     zaxis = list(title = 'PHATE 3')
                 )
@@ -637,7 +579,7 @@ server <- function(input, output) {
 ui <- fluidPage(
 
   # App title ----
-  titlePanel(title=div("CHARTS: CHARacterizing Tumor Subpopulations", img(src="Logo2.png", height=80, width=80))),
+  titlePanel(title=div(img(src="charts_logo.png", height=100, width=100), "CHARTS: CHARacterizing Tumor Subpopulations")),
 
   tabsetPanel(
         tabPanel("Individual tumors", 
@@ -646,16 +588,31 @@ ui <- fluidPage(
                     selectInput("tumor1", "Plot 1 dataset:", TUMORS),
                     textInput("colorby1", "Select gene:", value = "OLIG1"),
                     selectInput("coords1", "Select coordinates:", COORDS), 
-                    textInput("size_plot1", "Dot size", value = 3),
+                    sliderInput("size_plot1", "Dot size:",
+                        min = 1, max = 10,
+                        value = 3
+                    ),
                     selectInput("tumor2", "Plot 2 dataset:", TUMORS),
                     textInput("colorby2", "Select gene:", value = "STMN2"),
-                    selectInput("coords2", "Select coordinates:", COORDS), 
+                    selectInput("coords2", "Select coordinates:", COORDS),
+                    sliderInput("size_plot2", "Dot size:",
+                        min = 1, max = 10,
+                        value = 3
+                    ), 
                     selectInput("tumor3", "Plot 3 dataset:", TUMORS),
                     textInput("colorby3", "Select gene:", value = "MOG"),
                     selectInput("coords3", "Select coordinates:", COORDS),
+                    sliderInput("size_plot3", "Dot size:",
+                        min = 1, max = 10,
+                        value = 3
+                    ),
                     selectInput("tumor4", "Plot 4 dataset:", TUMORS),
                     textInput("colorby4", "Select gene:", value = "GFAP"),
                     selectInput("coords4", "Select coordinates:", COORDS),
+                    sliderInput("size_plot41", "Dot size:",
+                        min = 1, max = 10,
+                        value = 3
+                    ),
                     width=2
                 ),               
                 mainPanel(
@@ -683,11 +640,11 @@ ui <- fluidPage(
            sidebarLayout(
                 sidebarPanel(
                     selectInput("aligned1", "Plot 1 dataset:", names(aligned_dfs)),
-                    selectInput("aligned_colorby1", "Plot 1, color by:", genes),
+                    selectInput("aligned_colorby1", "Plot 1, color by:", c('tumor', 'subtype', genes)),
                     selectInput("coords_aligned1", "Select coordinates:", COORDS),
                     #textInput("aligned_colorby1", "Plot 1, color by:", value = "tumor"),
                     selectInput("aligned2", "Plot 2 dataset:", names(aligned_dfs)),
-                    selectInput("aligned_colorby2", "Plot 2, color by:", genes),
+                    selectInput("aligned_colorby2", "Plot 2, color by:", c('tumor', 'subtype', genes)),
                     #textInput("aligned_colorby2", "Plot 2, color by:", value = "GFAP"),
                     selectInput("coords_aligned2", "Select coordinates:", COORDS),
                     width=2
