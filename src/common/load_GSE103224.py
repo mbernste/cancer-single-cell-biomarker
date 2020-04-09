@@ -85,12 +85,23 @@ def counts_matrix_for_cells(cells):
         counts = f['count'][indices]
     return counts
 
+def _n_genes(X):
+    N = [
+        sum([
+            1 for c in x
+            if c > 0
+        ])
+        for x in X
+    ]
+    return N
 
 def main():
     #cells = ['PJ016_4', 'PJ016_5', 'PJ016_6']
     #print(np.sum(counts_matrix_for_cells(cells), axis=1))
-    counts, X = counts_matrix_for_tumor('PJ018')
-    print(counts)
+    counts, X = counts_matrix_for_tumor('PJ030')
+    print(len(np.sum(counts, axis=1)))
+    #print(list(counts[-1,:]))
+    print(list(np.count_nonzero(counts, axis=1)))
 
 if __name__ == '__main__':
     main()

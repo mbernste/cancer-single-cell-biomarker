@@ -2,7 +2,7 @@
 
 configfile: "../../config.json"
 
-RAW_COUNT_FILES = [
+RAW_COUNT_FILES_GSE103224 = [
     '{}/GSM2758471_PJ016.filtered.matrix.txt'.format(config['raw_data_dir']),
     '{}/GSM2758472_PJ017.filtered.matrix.txt'.format(config['raw_data_dir']),
     '{}/GSM2758473_PJ018.filtered.matrix.txt'.format(config['raw_data_dir']),
@@ -11,6 +11,17 @@ RAW_COUNT_FILES = [
     '{}/GSM2758476_PJ032.filtered.matrix.txt'.format(config['raw_data_dir']),
     '{}/GSM2758477_PJ035.filtered.matrix.txt'.format(config['raw_data_dir']),
     '{}/GSM2940098_PJ048.filtered.matrix.txt'.format(config['raw_data_dir'])
+]
+
+RAW_COUNT_FILES_GSE123904 = [
+    '{}/GSM3516662_MSK_LX653_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516663_MSK_LX661_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516665_MSK_LX675_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516667_MSK_LX676_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516669_MSK_LX679_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516670_MSK_LX680_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516672_MSK_LX682_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir']),
+    '{}/GSM3516674_MSK_LX684_PRIMARY_TUMOUR_dense.csv'.format(config['raw_data_dir'])
 ]
 
 ZIPPED_RAW_COUNT_FILES = [
@@ -24,13 +35,26 @@ ZIPPED_RAW_COUNT_FILES = [
     '{}/GSM2940098_PJ048.filtered.matrix.txt.gz'.format(config['raw_data_dir'])
 ]
 
+ZIPPED_RAW_COUNT_FILES_GSE123904 = [
+    '{}/GSM3516669_MSK_LX679_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),
+    '{}/GSM3516662_MSK_LX653_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516670_MSK_LX680_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516663_MSK_LX661_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516672_MSK_LX682_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516665_MSK_LX675_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516674_MSK_LX684_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir']),		
+    '{}/GSM3516667_MSK_LX676_PRIMARY_TUMOUR_dense.csv.gz'.format(config['raw_data_dir'])		
+
+]
 
 rule all:
     input:
-        '{}/GSE103224.h5'.format(config['output_dir']),
-        '{}/GSE103224_normalized.h5'.format(config['output_dir'])
+        '{}/GSE103224_GSE123904.h5'.format(config['output_dir']),
+        '{}/GSE103224_GSE123904_normalized.h5'.format(config['output_dir'])
 
-rule download_data:
+#############
+
+rule download_data_GSE103224:
     output:
         '{}/GSE103224_RAW.tar'.format(config['raw_data_dir'])
     run:
@@ -45,7 +69,7 @@ rule unzip_data:
     input:
         '{}/GSE103224_RAW.tar'.format(config['raw_data_dir'])
     output:
-        RAW_COUNT_FILES
+        RAW_COUNT_FILES_GSE103224
     run:
         commands = [
             'tar -xf {raw}/GSE103224_RAW.tar -C {raw}'.format(
@@ -61,7 +85,7 @@ rule unzip_data:
 
 rule build_GSE103224_H5:
     input:
-        RAW_COUNT_FILES
+        RAW_COUNT_FILES_GSE103224
     output:
         '{}/GSE103224.h5'.format(config['output_dir'])
     run:
@@ -74,12 +98,73 @@ rule build_GSE103224_H5:
         for c in commands:
             shell(c)
 
-rule build_GSE103224_normalized_H5:
-    input:
-        '{}/GSE103224.h5'.format(config['output_dir'])
+#############
+
+rule download_GSE123904:
     output:
-        '{}/GSE103224_normalized.h5'.format(config['output_dir'])
+        '{}/GSE123904_RAW.tar'.format(config['raw_data_dir'])
+    run:
+        commands=[
+            'mkdir -p {}'.format(config['raw_data_dir']),
+            'curl ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE123nnn/GSE123904/suppl/GSE123904_RAW.tar > {output}'
+        ]
+        for c in commands:
+            shell(c)
+
+rule unpack_GSE123904:
+    input:
+        '{}/GSE123904_RAW.tar'.format(config['raw_data_dir'])
+    output:
+        RAW_COUNT_FILES_GSE123904
+    run:
+        commands = [
+            'tar -xf {raw}/GSE123904_RAW.tar -C {raw}'.format(
+                raw=config['raw_data_dir']
+            )
+        ]
+        commands += [
+            'gunzip {}'.format(f)
+            for f in ZIPPED_RAW_COUNT_FILES_GSE123904
+        ]
+        for c in commands:
+            shell(c)
+
+rule build_GSE123904_H5:
+    input:
+        RAW_COUNT_FILES_GSE123904
+    output:
+        '{}/GSE123904.h5'.format(config['output_dir'])
+    run:
+        commands = [
+            'mkdir -p {}'.format(config['output_dir']),
+            'python build_h5_GSE123904.py {raw} {{output}}'.format(
+                raw=config['raw_data_dir']
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+##############
+
+rule build_GSE103224_GSE123904_H5:
+    input:
+        '{}/GSE103224.h5'.format(config['output_dir']),
+        '{}/GSE123904.h5'.format(config['output_dir'])
+    output:
+        '{}/GSE103224_GSE123904.h5'.format(config['output_dir'])
     run:
         shell(
-            'python build_h5_GSE103224_normalized.py {input} {output}'
+            'python build_h5_GSE103224_GSE123904.py -o {output}'
+        )
+
+
+rule build_GSE103224_GSE123904_normalized_H5:
+    input:
+        data='{}/GSE103224_GSE123904.h5'.format(config['output_dir']),
+        meta='{}/tumor_metadata.json'.format(config['output_dir'])
+    output:
+        '{}/GSE103224_GSE123904_normalized.h5'.format(config['output_dir'])
+    run:
+        shell(
+            'python build_h5_normalized.py {input.meta} {output}'
         )

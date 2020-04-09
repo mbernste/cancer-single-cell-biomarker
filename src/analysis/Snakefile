@@ -115,10 +115,16 @@ PAIRWISE_ALIGNED_PHATE_OUTPUTS = [
 
 rule all:
     input:
-        '{}/cluster_de_genes.json'.format(config['output_dir']), 
-        '{}/gsea_binary_matrix.tsv'.format(config['output_dir']),
+        '{}/cluster/cluster_de_genes.json'.format(config['output_dir']), 
+        '{}/cluster/gsea_binary_matrix.tsv'.format(config['output_dir']),
         expand(
-            '{out}/{{tumor}}_PHATE_3.tsv'.format(
+            '{out}/dim_reduc/{{tumor}}_PHATE_3.tsv'.format(
+                out=config['output_dir']
+            ),
+            tumor=DATASETS
+        ),
+        expand(
+            '{out}/dim_reduc/{{tumor}}_UMAP_3.tsv'.format(
                 out=config['output_dir']
             ),
             tumor=DATASETS
@@ -129,8 +135,11 @@ rule all:
             ),
             tumor=DATASETS
         ),
-        '{}/all_tumors_aligned_PHATE_3.tsv'.format(config['output_dir']),
-        '{}/tumor_cluster_gene_expression.tsv'.format(config['output_dir'])
+        '{}/dim_reduc/glioma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/glioma_aligned_UMAP_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/lung_adenocarcinoma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/lung_adenocarcinoma_aligned_UMAP_3.tsv'.format(config['output_dir']),
+        '{}/cluster/tumor_cluster_gene_expression.tsv'.format(config['output_dir'])
         #PAIRWISE_ALIGNED_OUTPUTS,
         #PAIRWISE_ALIGNED_PHATE_OUTPUTS        
 
@@ -220,11 +229,11 @@ rule assign_cell_types:
 
 rule align_tumors:
     input:
-        #data='{}/GSE103224_GSE72056.h5'.format(config['output_dir']),
         data='{}/GSE103224_GSE123904.h5'.format(config['output_dir']),
         metadata='{}/tumor_metadata.json'.format(config['output_dir'])
-    #output:
-    #    '{}/GSE103224_aligned.h5'.format(config['output_dir'])
+    output:
+        '{}/glioma_aligned.h5'.format(config['output_dir']),
+        '{}/lung_adenocarcinoma_aligned.h5'.format(config['output_dir'])
     run:
         shell(
             'Rscript integration.R {{input.data}} {{input.metadata}} {out}'.format(out=config['output_dir'])
@@ -286,14 +295,14 @@ rule run_phate_3d_all_tumors:
         )
 
 rule run_dim_reduc_3d_all_tumors_aligned:
-    #input:
-        #'{}/GSE103224_aligned.h5'.format(config['output_dir']),
-        #'{}/all_tumors_clusters_aligned.tsv'.format(config['output_dir'])
-    #output:    
-    #    '{}/dim_reduc/glioma_aligned_PHATE_3.tsv'.format(config['output_dir']),
-    #    '{}/dim_reduc/melanoma_aligned_PHATE_3.tsv'.format(config['output_dir']),
-    #    '{}/dim_reduc/glioma_aligned_UMAP_3.tsv'.format(config['output_dir']),
-    #    '{}/dim_reduc/melanoma_aligned_UMAP_3.tsv'.format(config['output_dir'])
+    input:
+        '{}/glioma_aligned.h5'.format(config['output_dir']),
+        '{}/lung_adenocarcinoma_aligned.h5'.format(config['output_dir'])
+    output: 
+        '{}/dim_reduc/glioma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/glioma_aligned_UMAP_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/lung_adenocarcinoma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+        '{}/dim_reduc/lung_adenocarcinoma_aligned_UMAP_3.tsv'.format(config['output_dir'])   
     run:
         shell(
             'mkdir -p {}/dim_reduc'.format(config['output_dir'])

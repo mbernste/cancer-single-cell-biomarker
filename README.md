@@ -1,11 +1,11 @@
-# CHARTS: CharACTerizing TUmor Subpopulations
+# ![screenshot](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/charts_logo.png) CHARTS: CharACTerizing TUmor Subpopulations
 
 CHARTS is a R/Shiny application with associated data processing pipeline for exploring tumor subpopulations in single-cell RNA-seq data.
 
-Currently, CHARTS supports exploring high-grade glioma scRNA-seq data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9) and lung adenocarcinoma data from [Laughney et al.](https://www.nature.com/articles/s41591-019-0750-6). Future additions to CHARTS will enable exploration of other datasets and cancer types.
+Currently, CHARTS supports exploring high-grade glioma scRNA-seq data from [Yuan et al.](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-018-0567-9) and lung adenocarcinoma data from [Laughney et al.](https://www.nature.com/articles/s41591-019-0750-6) Future additions to CHARTS will enable exploration of other datasets and cancer types.
 
 CHARTS implements the following features: 
-* Visualize tumor scRNA-seq datasets with [PHATE](https://github.com/KrishnaswamyLab/PHATE) 
+* Visualize tumor scRNA-seq datasets with [PHATE](https://github.com/KrishnaswamyLab/PHATE) and UMAP
 * Cluster each tumor 
 * Perform differential expression (DE) analysis on each cluster for each tumor 
 * Perform [gene set enrichment analysis](https://www.pnas.org/content/102/43/15545) on each cluster's DE genes using [Enrichr](https://amp.pharm.mssm.edu/Enrichr/) 
@@ -13,7 +13,7 @@ CHARTS implements the following features:
 
 These analyses are all automated using a [Snakemake](https://snakemake.readthedocs.io/en/stable/) pipeline. 
 
-A screenshot of the CHARTS homepage: 
+A screenshot of the CHARTS Shiny application: 
 
 ![screenshot](https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/screenshot.png) 
 
