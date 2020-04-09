@@ -1,6 +1,6 @@
-#
+#k
 
-TUMORS = [
+DATASETS1 = [
     'PJ016',
     'PJ018',
     'PJ048',
@@ -8,7 +8,45 @@ TUMORS = [
     'PJ025',
     'PJ035',
     'PJ017',
-    'PJ032'
+    'PJ032',
+    'Mel79', 
+    'Mel84', 
+    'Mel59', 
+    'Mel82', 
+    'Mel74', 
+    'Mel53', 
+    'Mel80', 
+    'Mel94', 
+    'Mel78', 
+    'Mel72', 
+    'Mel65', 
+    'Mel75', 
+    'Mel81', 
+    'Mel60', 
+    'Mel89', 
+    'Mel71', 
+    'Mel88', 
+    'Mel67', 
+    'Mel58'
+]
+
+DATASETS = [
+    "PJ016",
+    "PJ018",
+    "PJ048",
+    "PJ030",
+    "PJ025",
+    "PJ035",
+    "PJ017",
+    "PJ032",
+    "LX653_tumor",
+    "LX661_tumor",
+    "LX675_tumor",
+    "LX676_tumor",
+    "LX679_tumor",
+    "LX680_tumor",
+    "LX682_tumor",
+    "LX684_tumor"
 ]
 
 configfile: "../../config.json"
@@ -83,31 +121,35 @@ rule all:
             '{out}/{{tumor}}_PHATE_3.tsv'.format(
                 out=config['output_dir']
             ),
-            tumor=TUMORS
+            tumor=DATASETS
         ),
         expand(
-            '{tmp}/{{tumor}}_clusters.res_0_8.tsv'.format(
+            '{tmp}/cluster/{{tumor}}_clusters.res_0_8.tsv'.format(
                 tmp=config['output_dir']
             ),
-            tumor=TUMORS
+            tumor=DATASETS
         ),
         '{}/all_tumors_aligned_PHATE_3.tsv'.format(config['output_dir']),
-        '{}/tumor_cluster_gene_expression.tsv'.format(config['output_dir']),
-        PAIRWISE_ALIGNED_OUTPUTS,
-        PAIRWISE_ALIGNED_PHATE_OUTPUTS        
+        '{}/tumor_cluster_gene_expression.tsv'.format(config['output_dir'])
+        #PAIRWISE_ALIGNED_OUTPUTS,
+        #PAIRWISE_ALIGNED_PHATE_OUTPUTS        
 
 rule cluster_tumors:
     output:
-        '{}/cluster_de_genes.json'.format(config['output_dir']),
+        '{}/cluster/cluster_de_genes.json'.format(config['output_dir']),
         expand(
-            '{tmp}/{{tumor}}_clusters.res_0_8.tsv'.format(
+            '{tmp}/cluster/{{dataset}}_clusters.res_0_8.tsv'.format(
                 tmp=config['output_dir']
             ),
-            tumor=TUMORS
+            dataset=DATASETS
         )
     run:
         shell(
-            'python cluster_and_de.py -r {} -o {}'.format(
+            'mkdir -p {}/cluster'.format(config['output_dir'])
+        ),
+        shell(
+            'python cluster_and_de.py {}/tumor_metadata.json -r {} -o {}/cluster'.format(
+                config['output_dir'],
                 config['louvain_resolution'],
                 config['output_dir']
             )
@@ -115,24 +157,24 @@ rule cluster_tumors:
 
 rule compute_expression_per_cluster:
     input:
-        '{}/cluster_de_genes.json'.format(config['output_dir'])
+        '{}/cluster/cluster_de_genes.json'.format(config['output_dir'])
     output:
-        '{}/tumor_cluster_gene_expression.tsv'.format(config['output_dir'])
+        '{}/cluster/tumor_cluster_gene_expression.tsv'.format(config['output_dir'])
     run:
         shell(
-            'python identify_clusters_expressing_each_genes.py {tmp} {{input}} -o {tmp}'.format(
+            'python identify_clusters_expressing_each_genes.py {tmp} {{input}} -o {tmp}/cluster'.format(
                 tmp=config['output_dir']
             )
         ) 
 
 rule gsea_per_cluster:
     input:
-        '{}/cluster_de_genes.json'.format(config['output_dir'])
+        '{}/cluster/cluster_de_genes.json'.format(config['output_dir'])
     output:
-        '{}/gsea_results.tsv'.format(config['output_dir'])        
+        '{}/cluster/gsea_results.tsv'.format(config['output_dir'])        
     run:
         shell(
-            'python gsea.py {{input}} -o {out}'.format(
+            'python gsea.py {{input}} -o {out}/cluster'.format(
                 out=config['output_dir']
             )
         )
@@ -140,12 +182,12 @@ rule gsea_per_cluster:
 
 rule compute_binary_matrix:
     input:
-        '{}/gsea_results.tsv'.format(config['output_dir'])
+        '{}/cluster/gsea_results.tsv'.format(config['output_dir'])
     output:
-        '{}/gsea_binary_matrix.tsv'.format(config['output_dir'])
+        '{}/cluster/gsea_binary_matrix.tsv'.format(config['output_dir'])
     run:
         shell(
-            'python compute_cluster_tumor_gsea_binary_matrix.py {{input}} -o {tmp}'.format(
+            'python compute_cluster_tumor_gsea_binary_matrix.py {{input}} -o {tmp}/cluster'.format(
                 tmp=config['output_dir']
             )
         )
@@ -157,13 +199,13 @@ rule assign_cell_types:
             '{out}/{{tumor}}_predicted_cell_types.tsv'.format(
                 out=config['output_dir']
             ),
-            tumor=TUMORS
+            tumor=DATASETS
         ),
         expand(
             '{out}/{{tumor}}_predicted_cell_type_probs.tsv'.format(
                 out=config['output_dir']
             ),
-            tumor=TUMORS
+            tumor=DATASETS
         )
     run:
         shell(
@@ -178,12 +220,14 @@ rule assign_cell_types:
 
 rule align_tumors:
     input:
-        '{}/GSE103224.h5'.format(config['output_dir'])
-    output:
-        '{}/GSE103224_aligned.h5'.format(config['output_dir'])
+        #data='{}/GSE103224_GSE72056.h5'.format(config['output_dir']),
+        data='{}/GSE103224_GSE123904.h5'.format(config['output_dir']),
+        metadata='{}/tumor_metadata.json'.format(config['output_dir'])
+    #output:
+    #    '{}/GSE103224_aligned.h5'.format(config['output_dir'])
     run:
         shell(
-            'Rscript integration.R {input} {output}'
+            'Rscript integration.R {{input.data}} {{input.metadata}} {out}'.format(out=config['output_dir'])
         )
 
 rule cluster_aligned_tumors:
@@ -233,14 +277,6 @@ rule run_phate_pairwise_aligned_tumors:
 ############################################################
 #   Create dimensionality reduction plot of all tumors
 ############################################################
-rule run_phate_all_tumors:
-    output:
-        '{}/all_tumors_PHATE.tsv'.format(config['output_dir'])
-    run:
-        shell(
-            'python run_phate_all_tumors.py -o {}'.format(config['output_dir'])
-        )
-
 rule run_phate_3d_all_tumors:
     output:
         '{}/all_tumors_PHATE_3.tsv'.format(config['output_dir'])
@@ -249,15 +285,21 @@ rule run_phate_3d_all_tumors:
             'python run_phate_all_tumors.py -n 3 -o {}'.format(config['output_dir'])
         )
 
-rule run_phate_3d_all_tumors_aligned:
-    input:
-        '{}/GSE103224_aligned.h5'.format(config['output_dir']),
-        '{}/all_tumors_clusters_aligned.tsv'.format(config['output_dir'])
-    output:    
-        '{}/all_tumors_aligned_PHATE_3.tsv'.format(config['output_dir'])
+rule run_dim_reduc_3d_all_tumors_aligned:
+    #input:
+        #'{}/GSE103224_aligned.h5'.format(config['output_dir']),
+        #'{}/all_tumors_clusters_aligned.tsv'.format(config['output_dir'])
+    #output:    
+    #    '{}/dim_reduc/glioma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+    #    '{}/dim_reduc/melanoma_aligned_PHATE_3.tsv'.format(config['output_dir']),
+    #    '{}/dim_reduc/glioma_aligned_UMAP_3.tsv'.format(config['output_dir']),
+    #    '{}/dim_reduc/melanoma_aligned_UMAP_3.tsv'.format(config['output_dir'])
     run:
         shell(
-            'python run_phate_all_tumors_aligned.py -n 3 {data} {data}/tumor_metadata.json -o {data}'.format(
+            'mkdir -p {}/dim_reduc'.format(config['output_dir'])
+        ),
+        shell(
+            'python run_dim_reducs_aligned.py -n 3 {data} {data}/tumor_metadata.json -o {data}/dim_reduc'.format(
                 data=config['output_dir']
             )
         )
@@ -275,48 +317,32 @@ rule run_umap_all_tumors:
 #   Run dimensionality reduction for each tumor
 ###########################################################
 
-rule run_phate_per_tumor:
+rule run_dim_reduc_3d_per_dataset:
     output:
         expand(
-            '{out}/{{tumor}}_PHATE.tsv'.format(
+            '{out}/dim_reduc/{{tumor}}_PHATE_3.tsv'.format(
                 out=config['output_dir']
             ),
-            tumor=TUMORS
-        )
-    run:
-        shell(
-            'python run_phate_per_tumor.py -o {}'.format(
-                config['output_dir']
-            )            
-        )
-
-rule run_phate_3d_per_tumor:
-    output:
+            tumor=DATASETS
+        ),
         expand(
-            '{out}/{{tumor}}_PHATE_3.tsv'.format(
+            '{out}/dim_reduc/{{tumor}}_UMAP_3.tsv'.format(
                 out=config['output_dir']
             ),
-            tumor=TUMORS
+            tumor=DATASETS
         )
     run:
+        shell('mkdir -p {}/dim_reduc'.format(config['output_dir'])),
         shell(
-            'python run_phate_per_tumor.py -n 3 -o {}'.format(
-                config['output_dir']
+            'python run_dim_reduc_per_dataset.py {out}/tumor_metadata.json -n 3 -o {out}/dim_reduc'.format(
+                out=config['output_dir']
+            )
+        ),
+        shell(
+            'python run_dim_reduc_per_dataset.py {out}/tumor_metadata.json -n 3 -o {out}/dim_reduc'.format(
+                out=config['output_dir']
             )
         )
 
-rule run_umap_per_tumor:
-    output:
-        expand(
-            '{out}/{{tumor}}_UMAP.tsv'.format(
-                out=config['output_dir']
-            ),
-            tumor=TUMORS
-        )
-    run:
-        shell(
-            'python run_umap_per_tumor.py -o {}'.format(
-                config['output_dir']
-            )      
-        )
+
 

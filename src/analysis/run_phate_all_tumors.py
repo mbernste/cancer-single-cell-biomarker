@@ -17,19 +17,8 @@ from optparse import OptionParser
 
 sys.path.append('../common')
 
-import load_GSE103224 
+from common import load_GSE103224
 
-
-TUMORS = [
-    'PJ016',
-    'PJ018',
-    'PJ048',
-    'PJ030',
-    'PJ025',
-    'PJ035',
-    'PJ017',
-    'PJ032'
-]
 
 def main():
     usage = "" # TODO 

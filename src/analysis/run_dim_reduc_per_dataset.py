@@ -18,7 +18,8 @@ import json
 
 sys.path.append('..')
 
-from common import load_GSE103224_GSE72056 as load
+#from common import load_GSE103224_GSE72056 as load
+from common import load_GSE103224_GSE123904 as load
 
 def main():
     usage = "" # TODO 
@@ -58,24 +59,62 @@ def main():
                 columns=['gene_name']
             )
         )
-        #sc.pp.filter_cells(ad, min_genes=10)
         sc.pp.filter_genes(ad, min_cells=3)
         if dataset_to_units[ds] == 'counts':
             sc.pp.normalize_total(ad, target_sum=1e6)
             sc.pp.log1p(ad)
+        X_phate = run_phate(ad, n_comps)
+        X_umap = run_umap(ad, n_comps)
+        write_output(
+            X_umap, 
+            ad.obs['cell'],
+            out_dir, 
+            ds, 
+            'UMAP', 
+            n_comps
+        )
+        write_output(
+            X_phate,
+            ad.obs['cell'],
+            out_dir,
+            ds,
+            'PHATE',
+            n_comps
+        )
 
-        print('The shape is: ', ad.X.shape)
-        #print('The length of cells is: ', len(cells))
-        phate_operator = phate.PHATE(n_jobs=-2, random_state=1, n_components=n_comps)
-        X_phate = phate_operator.fit_transform(ad.X)
 
+def run_phate(ad, n_comps):
+    phate_operator = phate.PHATE(
+        n_jobs=-2,
+        random_state=1,
+        n_components=n_comps
+    )
+    X_phate = phate_operator.fit_transform(ad.X)
+    return X_phate
+
+
+def run_umap(ad, n_comps):
+    sc.tl.pca(ad, n_comps=50)
+    if ad.X.shape[0] < 300:
+        n_neighbors = int(ad.X.shape[0] * 0.05)
+    else:
+        n_neighbors = 15
+    sc.pp.neighbors(ad, n_neighbors=n_neighbors)
+    sc.tl.umap(ad, n_components=n_comps)
+    return ad.obsm['X_umap']    
+
+
+def write_output(X, cells, out_dir, ds, units, n_comps):
         df = pd.DataFrame(
-            data=X_phate,
-            index=ad.obs['cell'],
-            columns=['PHATE_{}'.format(i+1) for i in range(n_comps)]
+            data=X,
+            index=cells,
+            columns=[
+                '{}_{}'.format(units, i+1) 
+                for i in range(n_comps)
+            ]
         )
         df.to_csv(
-            join(out_dir, '{}_PHATE_{}.tsv'.format(ds, n_comps)),
+            join(out_dir, '{}_{}_{}.tsv'.format(ds, units, n_comps)),
             sep='\t'
         )
 

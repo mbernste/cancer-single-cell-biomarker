@@ -94,7 +94,7 @@ for (integ_set_name in names(meta_df$integration_sets)) {
     integ_data$cell <- curr_cells
     integ_data$dataset <- datasets_l
   
-    out_f <- paste0(OUT_DIR, '/', integ_set_name, '_integrated.h5')
+    out_f <- paste0(OUT_DIR, '/', integ_set_name, '_aligned.h5')
     h5createFile(out_f)
     for(i in seq_along(integ_data)){
         h5write(integ_data[[i]], file = out_f, name = names(integ_data)[i])

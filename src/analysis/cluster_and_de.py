@@ -20,7 +20,9 @@ import json
 
 sys.path.append('..')
 
-from common import load_GSE103224_GSE72056 as load 
+#from common import load_GSE103224_GSE72056 as load 
+from common import load_GSE103224_GSE123904 as load
+
 
 def main():
     usage = "" # TODO

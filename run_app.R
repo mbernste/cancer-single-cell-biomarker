@@ -1,6 +1,6 @@
 library('shiny')
 
-runCACTUS <- function(data_dir) {
+runCHARTS <- function(data_dir) {
   .GlobalEnv$DATA_DIR <- data_dir
   runApp("src/shiny")
 }
@@ -8,4 +8,4 @@ runCACTUS <- function(data_dir) {
 Args = commandArgs(trailingOnly=TRUE)
 
 data_dir <- Args[1]
-runCACTUS(data_dir)
+runCHARTS(data_dir)

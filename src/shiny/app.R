@@ -10,13 +10,17 @@ library(shinycssloaders)
 library(RColorBrewer)
 library(rjson)
 library(DT)
+#library(bigmemory)
 
 ##########################   Configuration ########################################
 #DATA_DIR = '/Users/matthewbernstein/Development/single-cell-hackathon/tmp_test'
 ###################################################################################
 
-COORDS = c('PHATE', 'UMAP')
-DB_FILENAME = 'GSE103224_GSE72056_normalized.h5'
+options(bigmemory.allow.dimnames=TRUE)
+
+COORDS = c('UMAP', 'PHATE')
+#DB_FILENAME = 'GSE103224_GSE72056_normalized.h5'
+DB_FILENAME = 'GSE103224_GSE123904_normalized.h5'
 
 # Load meatadata
 meta_df <- fromJSON(file = paste0(DATA_DIR, '/tumor_metadata.json'))
@@ -26,23 +30,12 @@ de_genes_json <- paste0(DATA_DIR, "/cluster/cluster_de_genes.json")
 print(de_genes_json)
 de_data <- fromJSON(file = de_genes_json)
 
-print('Loading counts data...')
-counts = h5read(paste0(DATA_DIR, '/', DB_FILENAME),"count")
-cells = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "cell")
-tumor_ids = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "dataset")
-genes = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "gene_name")
-counts <- t(counts)
-counts <- data.frame(counts)
-rownames(counts) <- cells
-colnames(counts) <- genes
-print('done.')
-
 # Load the GSEA data
 gsea_df <- read.csv(
     paste0(DATA_DIR, "/cluster/gsea_results.tsv"),
     sep = '\t',
     header = TRUE
-)
+)   
 gsea_full_df <- read.csv(
     paste0(DATA_DIR, "/cluster/gsea_binary_matrix.tsv"),
     sep = '\t',
@@ -56,6 +49,20 @@ tumor_clust_expr_df <- read.csv(
     sep = '\t',
     header = TRUE
 )
+    
+
+print('Loading counts data...')
+counts = h5read(paste0(DATA_DIR, '/', DB_FILENAME),"count")
+cells = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "cell")
+tumor_ids = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "dataset")
+genes = h5read(paste0(DATA_DIR, '/', DB_FILENAME), "gene_name")
+counts <- data.frame(t(counts))
+#counts <- as.big.matrix(counts)
+#gc()
+rownames(counts) <- cells
+colnames(counts) <- genes
+print('done.')
+
 
 # Load each tumor's expression data and dimension reduction data
 tumor_dfs <- c()
@@ -69,6 +76,7 @@ for (tumor in TUMORS) {
         }
     }
     tumor_cells <- cells[tumor_indices]
+    #tumor_counts <- as.big.matrix(counts[tumor_indices,])
     tumor_counts <- counts[tumor_indices,]
     rownames(tumor_counts) <- tumor_cells
     colnames(tumor_counts) <- genes
@@ -77,14 +85,14 @@ for (tumor in TUMORS) {
     # Read dimension reduction
     print(paste('Loading PHATE data for tumor', tumor))
     phate_df <- read.csv(
-        file=paste0(DATA_DIR, '/', tumor, '_PHATE_3.tsv'), 
+        file=paste0(DATA_DIR, '/dim_reduc/', tumor, '_PHATE_3.tsv'), 
         sep = '\t', 
         header = TRUE,
         row.names = 1
     )
     colnames(phate_df) <- c('PHATE1', 'PHATE2', 'PHATE3')
     umap_df <- read.csv(
-        file=paste0(DATA_DIR, '/umap/', tumor, '_UMAP_3.tsv'),
+        file=paste0(DATA_DIR, '/dim_reduc/', tumor, '_UMAP_3.tsv'),
         sep = '\t',
         header = TRUE,
         row.names = 1
@@ -131,6 +139,7 @@ for (tumor in TUMORS) {
 aligned_dfs <- list()
 aligned_counts_df <- list()
 for (integ_set_name in names(meta_df$integration_sets)) {
+    print(paste('Loading integrated data for integration set ', integ_set_name)) 
     phate_df <- read.csv(
         paste0(DATA_DIR, '/dim_reduc/', integ_set_name, '_aligned_PHATE_3.tsv'),
         sep = '\t',
@@ -144,6 +153,9 @@ for (integ_set_name in names(meta_df$integration_sets)) {
         row.names = 1
     )
     aligned_dfs[[integ_set_name]] <- transform(merge(phate_df, umap_df, by=0), row.names=Row.names, Row.names=NULL)
+    aligned_dfs[[integ_set_name]] <- transform(merge(aligned_dfs[[integ_set_name]], counts, by=0), row.names=Row.names, Row.names=NULL)
+    names(aligned_dfs[[integ_set_name]])[names(aligned_dfs[[integ_set_name]]) == "tumor.x"] <- "tumor"
+    names(aligned_dfs[[integ_set_name]])[names(aligned_dfs[[integ_set_name]]) == "subtype.x"] <- "subtype" 
     aligned_counts_df[[integ_set_name]] <- counts[rownames(aligned_dfs[[integ_set_name]]),]
 }
 
@@ -370,6 +382,7 @@ server <- function(input, output) {
                 z = pz,
                 height = 700,
                 marker = list(
+                    opacity = 1.0,
                     color = tumor_dfs[[input$tumor4]][[input$colorby4]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
@@ -429,8 +442,16 @@ server <- function(input, output) {
                 select_cols <- c(select_cols, 0.0)
             }
         }
+
+        # String manipulation to get the tumor names from 
+        # the tumor-cluster strings
+        splits <- strsplit(colnames(gsea_full_df), "_")
+        tumor_annot <- c()
+        for (split in splits) {
+            tumor_annot <- c(tumor_annot, paste(split[1:length(split)-1], collapse = '_'))
+        }   
         row_annot <- data.frame(
-            tumor = t(unname(data.frame(strsplit(colnames(gsea_full_df), "_"))[1,])), 
+            tumor = tumor_annot,
             gene_is_DE = select_cols
         )
         heatmaply(
@@ -467,7 +488,7 @@ server <- function(input, output) {
                 colors = brewer.pal(length(unique(curr_df[[colby]])), "Set1"),
                 #colors = c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#999999"),
                 height = 700,
-                marker = list(size = 2)
+                marker = list(size = input$aligned_size_plot1)
                 ) %>% add_markers() %>% layout(
                     scene = list(xaxis = list(title = 'PHATE 1'),
                     yaxis = list(title = 'PHATE 2'),
@@ -488,10 +509,10 @@ server <- function(input, output) {
                 height = 700,
                 marker = list(
                     #color = curr_df[[colby]],
-                    color = aligned_counts_df[[input$aligned1]][[colby]], 
+                    color = aligned_dfs[[input$aligned1]][[colby]], 
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 2
+                    size = input$aligned_size_plot1
                 )
             ) %>% add_markers() %>% layout(
                 scene = list(
@@ -525,7 +546,7 @@ server <- function(input, output) {
                 color = curr_df[[colby]],
                 colors = brewer.pal(length(unique(curr_df[[colby]])), "Set1"),
                 height = 700,
-                marker = list(size = 2)
+                marker = list(size = input$aligned_size_plot2)
                 ) %>% add_markers() %>% layout(
                     scene = list(xaxis = list(title = 'PHATE 1'),
                     yaxis = list(title = 'PHATE 2'),
@@ -546,10 +567,10 @@ server <- function(input, output) {
                 height = 700,
                 marker = list(
                     #color = curr_df[[colby]],
-                    color = aligned_counts_df[[input$aligned2]][[colby]],
+                    color = aligned_dfs[[input$aligned2]][[colby]],
                     colorscale = 'Viridis', 
                     showscale = TRUE, 
-                    size = 2
+                    size = input$aligned_size_plot2
                 )
             ) %>% add_markers() %>% layout(
                 scene = list(xaxis = list(title = 'PHATE 1'),
@@ -586,30 +607,34 @@ ui <- fluidPage(
             sidebarLayout(
                 sidebarPanel(
                     selectInput("tumor1", "Plot 1 dataset:", TUMORS),
-                    textInput("colorby1", "Select gene:", value = "OLIG1"),
+                    #textInput("colorby1", "Select gene:", value = "OLIG1"),
+                    selectInput("colorby1", "Select gene or variable:", c('cluster', genes)),
                     selectInput("coords1", "Select coordinates:", COORDS), 
                     sliderInput("size_plot1", "Dot size:",
                         min = 1, max = 10,
                         value = 3
                     ),
                     selectInput("tumor2", "Plot 2 dataset:", TUMORS),
-                    textInput("colorby2", "Select gene:", value = "STMN2"),
+                    #textInput("colorby2", "Select gene:", value = "STMN2"),
+                    selectInput("colorby2", "Select gene or variable:", c('cluster', genes)),
                     selectInput("coords2", "Select coordinates:", COORDS),
                     sliderInput("size_plot2", "Dot size:",
                         min = 1, max = 10,
                         value = 3
                     ), 
                     selectInput("tumor3", "Plot 3 dataset:", TUMORS),
-                    textInput("colorby3", "Select gene:", value = "MOG"),
+                    #textInput("colorby3", "Select gene:", value = "MOG"),
+                    selectInput("colorby3", "Select gene or variable:", c('cluster', genes)),
                     selectInput("coords3", "Select coordinates:", COORDS),
                     sliderInput("size_plot3", "Dot size:",
                         min = 1, max = 10,
                         value = 3
                     ),
                     selectInput("tumor4", "Plot 4 dataset:", TUMORS),
-                    textInput("colorby4", "Select gene:", value = "GFAP"),
+                    #textInput("colorby4", "Select gene:", value = "GFAP"),
+                    selectInput("colorby4", "Select gene or variable:", c('cluster', genes)),
                     selectInput("coords4", "Select coordinates:", COORDS),
-                    sliderInput("size_plot41", "Dot size:",
+                    sliderInput("size_plot4", "Dot size:",
                         min = 1, max = 10,
                         value = 3
                     ),
@@ -642,11 +667,17 @@ ui <- fluidPage(
                     selectInput("aligned1", "Plot 1 dataset:", names(aligned_dfs)),
                     selectInput("aligned_colorby1", "Plot 1, color by:", c('tumor', 'subtype', genes)),
                     selectInput("coords_aligned1", "Select coordinates:", COORDS),
-                    #textInput("aligned_colorby1", "Plot 1, color by:", value = "tumor"),
+                    sliderInput("aligned_size_plot1", "Dot size:",
+                        min = 1, max = 10,
+                        value = 2
+                    ),
                     selectInput("aligned2", "Plot 2 dataset:", names(aligned_dfs)),
                     selectInput("aligned_colorby2", "Plot 2, color by:", c('tumor', 'subtype', genes)),
-                    #textInput("aligned_colorby2", "Plot 2, color by:", value = "GFAP"),
                     selectInput("coords_aligned2", "Select coordinates:", COORDS),
+                    sliderInput("aligned_size_plot2", "Dot size:",
+                        min = 1, max = 10,
+                        value = 2
+                    ),
                     width=2
                 ),
                 mainPanel(
