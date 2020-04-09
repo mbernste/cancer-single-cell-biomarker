@@ -1,5 +1,5 @@
 {
-    "raw_data_dir": "<Location to place raw data from GEO>",
-    "output_dir": "<Location to place CACTUS output>",
+    "raw_data_dir": "/Users/matthewbernstein/Development/single-cell-hackathon/raw_data",
+    "output_dir": "/Users/matthewbernstein/Development/single-cell-hackathon/charts_data2",
     "louvain_resolution": 0.8
 }
