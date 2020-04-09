@@ -299,7 +299,7 @@ rule run_dim_reduc_3d_all_tumors_aligned:
             'mkdir -p {}/dim_reduc'.format(config['output_dir'])
         ),
         shell(
-            'python run_dim_reducs_aligned.py -n 3 {data} {data}/tumor_metadata.json -o {data}/dim_reduc'.format(
+            'python run_dim_reduc_aligned.py -n 3 {data} {data}/tumor_metadata.json -o {data}/dim_reduc'.format(
                 data=config['output_dir']
             )
         )
