@@ -1,4 +1,4 @@
-# CHARTS: CharACTerizing TUmor Subpopulations <img src="https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/charts_logo.png" alt="alt text" width="90px" height="90px"> 
+# CHARTS: CharACTerizing TUmor Subpopulations &nbsp; <img src="https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/charts_logo.png" alt="alt text" width="90px" height="90px"> 
 
 CHARTS is a R/Shiny application with associated data processing pipeline for exploring tumor subpopulations in single-cell RNA-seq data.
 
