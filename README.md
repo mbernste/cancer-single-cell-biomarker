@@ -1,4 +1,4 @@
-# <img src="https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/charts_logo.png" alt="alt text" width="50px" height="50px"> CHARTS: CHARacterizing TUmor Subpopulations  
+# <img src="https://github.com/mbernste/cancer-single-cell-biomarker/blob/master/img/charts_logo.png" alt="alt text" width="50px" height="50px"> CHARTS: CHARacterizing Tumor Subpopulations  
 
 CHARTS is a R/Shiny application with associated data processing pipeline for exploring tumor subpopulations in single-cell RNA-seq data.
 
@@ -81,8 +81,8 @@ To run this Snakemake workflow, perform the following:
 
 ## Contributors
 
-**[Matthew	Bernstein](https://mbernste.github.io)** 
-Postdoctoral Fellow at Morgridge Institute for Research\
+**[Matthew	Bernstein](https://mbernste.github.io)**\
+Postdoctoral Fellow at Morgridge Institute for Research
 
 **Paola	Correa**\
 Research Associate at HHMI Janelia Research Campus
@@ -95,3 +95,10 @@ Machine Learning & Bioinformatics PhD-In-Training at UT Arlington
 
 **David	Mayhew**\
 Computational Bioligist at GlaxoSmithKline in Philadelphia PA
+
+**Ron Stewart**\
+Principal Investigator at Morgridge Institute for Research
+
+**Christina Kendziorski**\
+Professor at University of Wisconsin - Madison
+ 
