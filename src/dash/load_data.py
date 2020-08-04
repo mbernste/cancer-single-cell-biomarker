@@ -101,11 +101,7 @@ def load_tumor_phate(tumor, num_dims):
     df = pd.DataFrame(
         data=X_umap,
         index=cells,
-        columns=[
-            'PHATE 1',
-            'PHATE 2',
-            'PHATE 3'
-        ]
+        columns=['PHATE {}'.format(x+1) for x in range(num_dims)]
     )
     return df
 
@@ -119,11 +115,7 @@ def load_tumor_umap(tumor, num_dims):
     df = pd.DataFrame(
         data=X_umap,
         index=cells,
-        columns=[
-            'UMAP 1',
-            'UMAP 2',
-            'UMAP 3'
-        ]
+        columns=['UMAP {}'.format(x+1) for x in range(num_dims)]
     )
     return df
 

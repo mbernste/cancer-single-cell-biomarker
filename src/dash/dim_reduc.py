@@ -14,7 +14,6 @@ SCATTER_HEIGHT = '550px'
 
 FIG_DIM = 500
 
-STYLE = 'legendpoints'
 
 # Color blind palette from:
 # https://jacksonlab.agronomy.wisc.edu/2016/05/23/15-level-colorblind-friendly-palette/
@@ -42,12 +41,13 @@ PALETTE = [
     [   
         Input(component_id='select-tumor-1', component_property='value'),
         Input(component_id='dim-reduc-alg-1', component_property='value'),
+        Input(component_id='num-dims-1', component_property='value'),
         Input(component_id='color-by-feature-1', component_property='value'),
         Input(component_id='select-feature-category-1', component_property='value')
     ]
 )
-def update_dim_reduc_1(tumor, algo, gene, category):
-    return _build_dim_reduc(tumor, algo, gene, category)
+def update_dim_reduc_1(tumor, algo, num_dims, gene, category):
+    return _build_dim_reduc(tumor, algo, num_dims, gene, category)
 
 
 @app.callback(
@@ -65,23 +65,48 @@ def update_feature_category_selector_1(tumor, category):
     [
         Input(component_id='select-tumor-2', component_property='value'),
         Input(component_id='dim-reduc-alg-2', component_property='value'),
-        Input(component_id='color-by-feature-2', component_property='value')
+        Input(component_id='num-dims-2', component_property='value'),
+        Input(component_id='color-by-feature-2', component_property='value'),
+        Input(component_id='select-feature-category-2', component_property='value')
     ]
 )
-def update_dim_reduc_2(tumor, algo, gene):
-    return _build_dim_reduc(tumor, algo, gene, 'gene')
+def update_dim_reduc_2(tumor, algo, num_dims, gene, category):
+    return _build_dim_reduc(tumor, algo, num_dims, gene, category)
 
+
+@app.callback(
+    Output(component_id='color-by-feature-container-2', component_property='children'),
+    [
+        Input(component_id='select-tumor-2', component_property='value'),
+        Input(component_id='select-feature-category-2', component_property='value')
+    ]
+)
+def update_feature_category_selector_1(tumor, category):
+    return build_features_selector('color-by-feature-2', tumor, category)
 
 @app.callback(
     Output(component_id='dim-reduc-scatter-3', component_property='figure'),
     [
         Input(component_id='select-tumor-3', component_property='value'),
         Input(component_id='dim-reduc-alg-3', component_property='value'),
-        Input(component_id='color-by-feature-3', component_property='value')
+        Input(component_id='num-dims-3', component_property='value'),
+        Input(component_id='color-by-feature-3', component_property='value'),
+        Input(component_id='select-feature-category-3', component_property='value')
     ]
 )
-def update_dim_reduc_3(tumor, algo, gene):
-    return _build_dim_reduc(tumor, algo, gene, 'gene')
+def update_dim_reduc_3(tumor, algo, num_dims, gene, category):
+    return _build_dim_reduc(tumor, algo, num_dims, gene, category)
+
+
+@app.callback(
+    Output(component_id='color-by-feature-container-3', component_property='children'),
+    [
+        Input(component_id='select-tumor-3', component_property='value'),
+        Input(component_id='select-feature-category-3', component_property='value')
+    ]
+)
+def update_feature_category_selector_1(tumor, category):
+    return build_features_selector('color-by-feature-3', tumor, category)
 
 
 @app.callback(
@@ -89,11 +114,25 @@ def update_dim_reduc_3(tumor, algo, gene):
     [
         Input(component_id='select-tumor-4', component_property='value'),
         Input(component_id='dim-reduc-alg-4', component_property='value'),
-        Input(component_id='color-by-feature-4', component_property='value')
+        Input(component_id='num-dims-4', component_property='value'),
+        Input(component_id='color-by-feature-4', component_property='value'),
+        Input(component_id='select-feature-category-4', component_property='value')
     ]
 )
-def update_dim_reduc_4(tumor, algo, gene):
-    return _build_dim_reduc(tumor, algo, gene, 'gene')
+def update_dim_reduc_4(tumor, algo, num_dims, gene, category):
+    return _build_dim_reduc(tumor, algo, num_dims, gene, category)
+
+
+@app.callback(
+    Output(component_id='color-by-feature-container-4', component_property='children'),
+    [
+        Input(component_id='select-tumor-4', component_property='value'),
+        Input(component_id='select-feature-category-4', component_property='value')
+    ]
+)
+def update_feature_category_selector_1(tumor, category):
+    return build_features_selector('color-by-feature-4', tumor, category)
+
 
 def build_dim_reduc_selector(idd):
     return dcc.RadioItems(
@@ -108,8 +147,8 @@ def build_dim_reduc_selector(idd):
 def build_num_dims_selector(idd):
     return dcc.RadioItems(
         options=[
+            {'label': '3', 'value': 3},
             {'label': '2', 'value': 2},
-            {'label': '3', 'value': 3}
         ],
         value=3,
         id=idd
@@ -135,11 +174,11 @@ def build_features_selector(idd, tumor, category):
             id=idd
         )
 
-def _build_dim_reduc(tumor_id, algo, feat, category):
+def _build_dim_reduc(tumor_id, algo, num_dims, feat, category):
     if algo == 'umap':
-        df_dim_reduc = load_data.load_tumor_umap(tumor_id, 3)
+        df_dim_reduc = load_data.load_tumor_umap(tumor_id, num_dims)
     elif algo == 'phate':
-        df_dim_reduc = load_data.load_tumor_phate(tumor_id, 3)
+        df_dim_reduc = load_data.load_tumor_phate(tumor_id, num_dims)
 
     if category == 'gene':
         if feat in load_data.load_tumor_gene_names(tumor_id):
@@ -161,14 +200,34 @@ def _build_dim_reduc(tumor_id, algo, feat, category):
                     thickness=20
                 )
             )
-            fig = go.Figure(data=[go.Scatter3d(
-                x=df[df_dim_reduc.columns[0]],
-                y=df[df_dim_reduc.columns[1]],
-                z=df[df_dim_reduc.columns[2]],
-                mode='markers',
-                marker=markers,
-                showlegend=False
-            )])
+            if num_dims == 3:
+                fig = go.Figure(data=[go.Scatter3d(
+                    x=df[df_dim_reduc.columns[0]],
+                    y=df[df_dim_reduc.columns[1]],
+                    z=df[df_dim_reduc.columns[2]],
+                    mode='markers',
+                    marker=markers,
+                    showlegend=False
+                )])
+            elif num_dims == 2:
+                markers=dict(
+                    size=5,
+                    color=df[col],
+                    colorscale='Viridis',
+                    opacity=1.0,
+                    cmin=color_range[0],
+                    cmax=color_range[1],
+                    colorbar=dict(
+                        thickness=20
+                    )
+                )
+                fig = go.Figure(data=[go.Scatter(
+                    x=df[df_dim_reduc.columns[0]],
+                    y=df[df_dim_reduc.columns[1]],
+                    mode='markers',
+                    marker=markers,
+                    showlegend=False
+                )])
     elif category == 'cluster':
         df_color = load_data.load_tumor_clusters_for_cells(tumor_id)
         col = 'color_by'
@@ -181,20 +240,60 @@ def _build_dim_reduc(tumor_id, algo, feat, category):
                 color=PALETTE[clust_i],
                 opacity=1.0
             )
-            fig.add_trace(
-                go.Scatter3d(
-                    x=df_clust[df_clust.columns[0]],
-                    y=df_clust[df_clust.columns[1]],
-                    z=df_clust[df_clust.columns[2]],
-                    mode='markers',
-                    marker=markers,
-                    name="Cluster {}".format(clust)
+            if num_dims == 3:
+                fig.add_trace(
+                    go.Scatter3d(
+                        x=df_clust[df_clust.columns[0]],
+                        y=df_clust[df_clust.columns[1]],
+                        z=df_clust[df_clust.columns[2]],
+                        mode='markers',
+                        marker=markers,
+                        name="Cluster {}".format(clust)
+                    )
                 )
-            )
+            elif num_dims == 2:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df_clust[df_clust.columns[0]],
+                        y=df_clust[df_clust.columns[1]],
+                        mode='markers',
+                        marker=markers,
+                        name="Cluster {}".format(clust)
+                    )
+                )
+
+    # Avoid an exception when trying to set the z-axis title
+    if num_dims == 2:
+        z_axis_title = None
+    elif num_dims == 3:
+        z_axis_title = df_dim_reduc.columns[2]
+
     fig.update_layout(
         autosize=True,
         width=FIG_DIM+10,
-        height=FIG_DIM
+        height=FIG_DIM,
+        scene = dict(
+            xaxis = dict(
+                showticklabels=False,
+                title=df_dim_reduc.columns[0]
+            ),
+            yaxis = dict(
+                showticklabels=False,
+                title=df_dim_reduc.columns[1]
+            ),
+            zaxis = dict(
+                showticklabels=False,
+                title=z_axis_title
+            )
+        ),
+        xaxis=dict(
+            showticklabels=False
+        ),
+        yaxis=dict(
+            showticklabels=False
+        ),
+        xaxis_title=df_dim_reduc.columns[0],
+        yaxis_title=df_dim_reduc.columns[1]
     )
     return fig
 
@@ -213,7 +312,7 @@ def _build_reduc_card(title, graph_id):
             dbc.CardBody([
                 dcc.Graph(
                     id=graph_id,
-                    figure=_build_dim_reduc('PJ017', 'umap', 'OLIG1', 'gene')
+                    figure=_build_dim_reduc('PJ017', 'umap', 3, 'OLIG1', 'gene')
                 )
             ], style={"height": "10vh", "width": "100%"})
         ],
