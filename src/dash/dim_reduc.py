@@ -1,3 +1,4 @@
+import pandas as pd
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -18,16 +19,16 @@ FIG_DIM = 500
 # Color blind palette from:
 # https://jacksonlab.agronomy.wisc.edu/2016/05/23/15-level-colorblind-friendly-palette/
 PALETTE = [
+    "#006ddb",
     "#004949",
+    "#920000",
+    "#ffb6db",
     "#009292",
     "#ff6db6",
-    "#ffb6db",
     "#490092",
-    "#006ddb",
     "#b66dff",
     "#6db6ff",
     "#b6dbff",
-    "#920000",
     "#924900",
     "#db6d00",
     "#24ff24",
@@ -81,7 +82,7 @@ def update_dim_reduc_2(tumor, algo, num_dims, gene, category):
         Input(component_id='select-feature-category-2', component_property='value')
     ]
 )
-def update_feature_category_selector_1(tumor, category):
+def update_feature_category_selector_2(tumor, category):
     return build_features_selector('color-by-feature-2', tumor, category)
 
 @app.callback(
@@ -105,7 +106,7 @@ def update_dim_reduc_3(tumor, algo, num_dims, gene, category):
         Input(component_id='select-feature-category-3', component_property='value')
     ]
 )
-def update_feature_category_selector_1(tumor, category):
+def update_feature_category_selector_3(tumor, category):
     return build_features_selector('color-by-feature-3', tumor, category)
 
 
@@ -130,7 +131,7 @@ def update_dim_reduc_4(tumor, algo, num_dims, gene, category):
         Input(component_id='select-feature-category-4', component_property='value')
     ]
 )
-def update_feature_category_selector_1(tumor, category):
+def update_feature_category_selector_4(tumor, category):
     return build_features_selector('color-by-feature-4', tumor, category)
 
 
@@ -158,7 +159,8 @@ def build_feature_category_selector(idd):
     return dcc.RadioItems(
         options=[
             {'label': 'Gene', 'value': 'gene'},
-            {'label': 'Cluster', 'value': 'cluster'}
+            {'label': 'Cluster', 'value': 'cluster'},
+            {'label': 'Tumor', 'value': 'tumor'},
         ],
         value='gene',
         id=idd
@@ -173,6 +175,12 @@ def build_features_selector(idd, tumor, category):
             value='Cluster',
             id=idd
         )
+    elif category == 'tumor':
+        return dcc.Dropdown(
+            options=[{'label': 'Tumor', 'value': 'Tumor'}],
+            value='Tumor',
+            id=idd
+        )
 
 def _build_dim_reduc(tumor_id, algo, num_dims, feat, category):
     if algo == 'umap':
@@ -181,65 +189,108 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category):
         df_dim_reduc = load_data.load_tumor_phate(tumor_id, num_dims)
 
     if category == 'gene':
-        if feat in load_data.load_tumor_gene_names(tumor_id):
+        # Check if this is an aligned set of tumors
+        if '&' in tumor_id:
+            tums = tumor_id.split('&')
+            tum_1 = tums[0]
+            tum_2 = tums[1]
+            cells = df_dim_reduc.index
+            df_color = load_data.load_gene_mult_tumors(tum_1, tum_2, cells, feat)
+        else:
+        #if feat in load_data.load_tumor_gene_names(tumor_id):
             df_color = load_data.load_tumor_gene(tumor_id, feat)
-            col = 'color_by'
-            color_range = [
-                min(df_color[col]),
-                max(df_color[col])
-            ]
-            df = df_dim_reduc.join(df_color)
+        col = 'color_by'
+        color_range = [
+            min(df_color[col]),
+            max(df_color[col])
+        ]
+        df = df_dim_reduc.join(df_color)
+        if len(df) > 5000:
+            size=2.5
+        else:
+            size=5
+        markers=dict(
+            size=size,
+            color=df[col],
+            colorscale='Viridis',
+            opacity=0.0,
+            cmin=color_range[0],
+            cmax=color_range[1],
+            colorbar=dict(
+                thickness=20
+            )
+        )
+        if num_dims == 3:
+            fig = go.Figure(data=[go.Scatter3d(
+                x=df[df_dim_reduc.columns[0]],
+                y=df[df_dim_reduc.columns[1]],
+                z=df[df_dim_reduc.columns[2]],
+                mode='markers',
+                marker=markers,
+                showlegend=False
+            )])
+        elif num_dims == 2:
+            if len(df) > 5000:
+                size=2.5
+            else:
+                size=5
             markers=dict(
-                size=5,
+                size=size,
                 color=df[col],
                 colorscale='Viridis',
-                opacity=0.0,
+                opacity=1.0,
                 cmin=color_range[0],
                 cmax=color_range[1],
                 colorbar=dict(
                     thickness=20
                 )
             )
-            if num_dims == 3:
-                fig = go.Figure(data=[go.Scatter3d(
-                    x=df[df_dim_reduc.columns[0]],
-                    y=df[df_dim_reduc.columns[1]],
-                    z=df[df_dim_reduc.columns[2]],
-                    mode='markers',
-                    marker=markers,
-                    showlegend=False
-                )])
-            elif num_dims == 2:
-                markers=dict(
-                    size=5,
-                    color=df[col],
-                    colorscale='Viridis',
-                    opacity=1.0,
-                    cmin=color_range[0],
-                    cmax=color_range[1],
-                    colorbar=dict(
-                        thickness=20
-                    )
+            fig = go.Figure(data=[go.Scatter(
+                x=df[df_dim_reduc.columns[0]],
+                y=df[df_dim_reduc.columns[1]],
+                mode='markers',
+                marker=markers,
+                showlegend=False
+            )])
+    elif category == 'cluster' or category == 'tumor':
+        if category == 'cluster':
+            if '&' in tumor_id:
+                pass # TODO handle this case
+            else:
+                df_color = load_data.load_tumor_clusters_for_cells(tumor_id)
+        elif category == 'tumor':
+            if '&' in tumor_id:
+                tums = tumor_id.split('&')
+                tum_1 = tums[0]
+                tum_2 = tums[1]
+                cells = df_dim_reduc.index
+                df_color = load_data.load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells)
+            else:
+                df_color = pd.DataFrame(
+                    data={
+                        'color_by': [tumor_id for cell in cells]
+                    },
+                    index=cells
                 )
-                fig = go.Figure(data=[go.Scatter(
-                    x=df[df_dim_reduc.columns[0]],
-                    y=df[df_dim_reduc.columns[1]],
-                    mode='markers',
-                    marker=markers,
-                    showlegend=False
-                )])
-    elif category == 'cluster':
-        df_color = load_data.load_tumor_clusters_for_cells(tumor_id)
         col = 'color_by'
         df = df_dim_reduc.join(df_color)
         fig = go.Figure()
-        for clust_i, clust in enumerate(sorted(set(df[col]))):
-            df_clust = df.loc[df[col] == clust]
+        for clust_i, group in enumerate(sorted(set(df[col]))):
+            df_clust = df.loc[df[col] == group]
+            if len(df) > 5000:
+                size=1.5
+            else:
+                size=5
             markers=dict(
-                size=5,
+                size=size,
                 color=PALETTE[clust_i],
                 opacity=1.0
             )
+            if category == 'tumor':
+                group_name = group
+            elif category == 'cluster':
+                group_name = "Cluster {}".format(group)
+            group_name
             if num_dims == 3:
                 fig.add_trace(
                     go.Scatter3d(
@@ -248,7 +299,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category):
                         z=df_clust[df_clust.columns[2]],
                         mode='markers',
                         marker=markers,
-                        name="Cluster {}".format(clust)
+                        name=group_name
                     )
                 )
             elif num_dims == 2:
@@ -258,7 +309,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category):
                         y=df_clust[df_clust.columns[1]],
                         mode='markers',
                         marker=markers,
-                        name="Cluster {}".format(clust)
+                        name=group_name
                     )
                 )
 

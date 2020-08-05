@@ -14,6 +14,7 @@ def build_tumor_dropdown(html_id):
             {'label': 'PJ032 (glioma)', 'value': 'PJ032'},
             {'label': 'PJ035 (glioma)', 'value': 'PJ035'},
             {'label': 'PJ048 (glioma)', 'value': 'PJ048'},
+            {'label': 'PJ018 + PJ025', 'value': 'PJ018&PJ025'},
         ],
         value='PJ016',
         id=html_id

@@ -64,14 +64,6 @@ def load_tumor_gene(tumor, gene):
             str(x)[2:-1]
             for x in f['{}_cell'.format(tumor)][:]
         ]
-        #TUMORS = [
-        #    str(x)[2:-1]
-        #    for x in f['{}_tumor'.format(tumor)][:]
-        #]
-        #GENE_IDS = [
-        #    str(x)[2:-1]
-        #    for x in f['{}_gene_id'.format(tumor)][:]
-        #]
         GENE_NAMES = [
             str(x)[2:-1]
             for x in f['{}_gene_name'.format(tumor)][:]
@@ -90,6 +82,68 @@ def load_tumor_gene(tumor, gene):
         index=CELLS
     )
     return df
+
+def load_gene_mult_tumors(tum_1, tum_2, cells, gene):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells_1 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_1)][:]
+        ]
+        genes_1 = [
+            str(x)[2:-1]
+            for x in f['{}_gene_name'.format(tum_1)][:]
+        ]
+        gene_name_to_index_1 = {
+            gene_name: index
+            for index, gene_name in enumerate(genes_1)
+        }
+        if gene in gene_name_to_index_1:
+            index = gene_name_to_index_1[gene]
+            expressions_1 = np.array(f['{}_log1_tpm'.format(tum_1)][:,index])
+        else:
+            expressions_1 = np.zeros(len(cells_1))
+        df_1 = pd.DataFrame(
+            data={'color_by': expressions_1},
+            index=cells_1
+        )
+
+        cells_2 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_2)][:]
+        ]
+        genes_2 = [
+            str(x)[2:-1]
+            for x in f['{}_gene_name'.format(tum_2)][:]
+        ]
+        gene_name_to_index_2 = {
+            gene_name: index
+            for index, gene_name in enumerate(genes_2)
+        }
+        if gene in gene_name_to_index_2:
+            index = gene_name_to_index_2[gene]
+            expressions_2 = np.array(f['{}_log1_tpm'.format(tum_2)][:,index])
+        else:
+            expressions_2 = np.zeros(len(cells_2))
+        df_2 = pd.DataFrame(
+            data={'color_by': expressions_2},
+            index=cells_2
+        ) 
+
+        df = pd.concat([df_1, df_2])
+        df = df.loc[cells]
+        return df
+
+def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
+    tumors = []
+    for cell in cells:
+        if tum_1 in cell:
+            tumors.append(tum_1)
+        elif tum_2 in cell:
+            tumors.append(tum_2)
+    return pd.DataFrame(
+        data={'color_by': tumors},
+        index=cells
+    )
 
 def load_tumor_phate(tumor, num_dims):
     with h5py.File('../../charts.h5', 'r') as f:
