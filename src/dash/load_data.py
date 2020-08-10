@@ -27,6 +27,14 @@ def cell_type_probability_columns(tumor, min_prob=None):
         )
         return set(df.loc[df['probability'] > min_prob].index)
 
+def hallmark_gene_sets(tumor):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cols = [
+            str(x)[2:-1]
+            for x in f['{}_hallmark_gene_set_name'.format(tumor)]
+        ]
+    return sorted(set(cols))
+
 def load_tumor_cell_type_classifications(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
@@ -75,13 +83,13 @@ def load_tumor_gene(tumor, gene):
             str(x)[2:-1]
             for x in f['{}_cell'.format(tumor)][:]
         ]
-        GENE_NAMES = [
+        gene_names = [
             str(x)[2:-1]
             for x in f['{}_gene_name'.format(tumor)][:]
         ]
         gene_name_to_index = {
             gene_name: index
-            for index, gene_name in enumerate(GENE_NAMES)
+            for index, gene_name in enumerate(gene_names)
         }
         if gene in gene_name_to_index:
             index = gene_name_to_index[gene]
@@ -113,6 +121,29 @@ def load_tumor_cell_type_probabilities(tumor, cell_type):
         probabilities = np.array(f['{}_cell_type_probability'.format(tumor)][:,index])
     df = pd.DataFrame(
         data={'color_by': probabilities},
+        index=cells
+    )
+    return df
+
+
+def load_tumor_hallmark_enrichment(tumor, gene_set):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tumor)][:]
+        ]
+        gene_sets = [
+            str(x)[2:-1]
+            for x in f['{}_hallmark_gene_set_name'.format(tumor)][:]
+        ]
+        gene_set_to_index = {
+            gene_set: index
+            for index, gene_set in enumerate(gene_sets)
+        }
+        index = gene_set_to_index[gene_set]
+        scores = np.array(f['{}_hallmark_gsva'.format(tumor)][:,index])
+    df = pd.DataFrame(
+        data={'color_by': scores},
         index=cells
     )
     return df

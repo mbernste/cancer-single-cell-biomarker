@@ -31,6 +31,18 @@ def build_cell_type_probability_dropdown_mult_tumors(tum_1, tum_2, html_id):
         id=html_id
     )
 
+def build_hallmark_enrichment_dropdown(tumor, html_id):
+    gene_sets = load_data.hallmark_gene_sets(tumor)
+    options = [
+        {'label': gene_set, 'value': gene_set}
+        for gene_set in sorted(gene_sets)
+    ]
+    return dcc.Dropdown(
+        options=options,
+        value='HALLMARK_HYPOXIA',
+        id=html_id
+    )
+
 def build_tumor_dropdown(html_id, width=None):
     options=[
         {'label': 'PJ016 (glioma)', 'value': 'PJ016'},

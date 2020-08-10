@@ -126,7 +126,6 @@ def update_feature_category_selector_2(tumor, category):
     return build_features_selector('color-by-feature-2', tumor, category)
 
 
-
 def build_dim_reduc_selector(idd):
     return dcc.Dropdown(
         options=[
@@ -154,7 +153,8 @@ def build_feature_category_selector(idd):
             {'label': 'Cluster', 'value': 'cluster'},
             {'label': 'Cell Type Probability', 'value': 'cell_type_probability'},
             {'label': 'Cell Type Classification', 'value': 'cell_type_classification'},
-            {'label': 'Tumor', 'value': 'tumor'},
+            {'label': 'Hallmark Gene Set Score', 'value': 'hallmark_enrichment'},
+            {'label': 'Tumor', 'value': 'tumor'}
         ],
         value='gene',
         id=idd
@@ -183,7 +183,6 @@ def build_features_selector(idd, tumor, category):
                 tumor, 
                 idd        
             )
-
     elif category == 'tumor':
         return dcc.Dropdown(
             options=[{'label': 'Tumor', 'value': 'Tumor'}],
@@ -196,6 +195,11 @@ def build_features_selector(idd, tumor, category):
             value='Cell Type',
             id=idd
         )
+    elif category == 'hallmark_enrichment':
+        return common.build_hallmark_enrichment_dropdown(
+            tumor,
+            idd
+        )
 
 def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     if algo == 'umap':
@@ -203,7 +207,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     elif algo == 'phate':
         df_dim_reduc = load_data.load_tumor_phate(tumor_id, num_dims)
 
-    if category == 'gene' or category == 'cell_type_probability':
+    if category == 'gene' or category == 'cell_type_probability' or category == 'hallmark_enrichment':
         # Check if this is an aligned set of tumors
         if '&' in tumor_id:
             tums = tumor_id.split('&')
@@ -223,6 +227,8 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                     df_dim_reduc.index,
                     feat
                 )
+            elif category == 'hallmark_enrichment':
+                pass # TODO handle this
         else:
             if category == 'gene':
                 df_color = load_data.load_tumor_gene(tumor_id, feat)
@@ -231,20 +237,38 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                     tumor_id, 
                     feat
                 )
-
+            elif category == 'hallmark_enrichment':
+                df_color = load_data.load_tumor_hallmark_enrichment(
+                    tumor_id, 
+                    feat
+                )     
+            
         col = 'color_by'
 
         # Determine color range
-        if category == 'gene':
+        if category == 'cell_type_probability':
+            cmin = 0.0
+            cmax = 1.0
+        elif category == 'hallmark_enrichment':
+            end = max(
+                abs(min(df_color[col])), 
+                abs(max(df_color[col]))
+            )
+            cmin = -1 * end
+            cmax = end
+        else:
             color_range = [
                 min(df_color[col]),
                 max(df_color[col])
             ]
             cmin = color_range[0]
             cmax = color_range[1]
-        elif category == 'cell_type_probability':
-            cmin = 0.0
-            cmax = 1.0
+
+        # Determine color map
+        if category == 'hallmark_enrichment':
+            palette = 'RdBu'
+        else:
+            palette = 'Viridis'
 
         # Create the full data frame
         df = df_dim_reduc.join(df_color)
@@ -254,7 +278,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
             markers=dict(
                 size=dot_size,
                 color=df[col],
-                colorscale='Viridis',
+                colorscale=palette,
                 opacity=0.0,
                 cmin=cmin,
                 cmax=cmax,
@@ -278,7 +302,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
             markers=dict(
                 size=dot_size,
                 color=df[col],
-                colorscale='Viridis',
+                colorscale=palette,
                 opacity=1.0,
                 cmin=cmin,
                 cmax=cmax,
