@@ -149,111 +149,70 @@ def load_tumor_hallmark_enrichment(tumor, gene_set):
     return df
 
 
-def load_gene_mult_tumors(tum_1, tum_2, cells, gene):
-    with h5py.File('../../charts.h5', 'r') as f:
-        cells_1 = [
-            str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
-        ]
-        genes_1 = [
-            str(x)[2:-1]
-            for x in f['{}_gene_name'.format(tum_1)][:]
-        ]
-        gene_name_to_index_1 = {
-            gene_name: index
-            for index, gene_name in enumerate(genes_1)
-        }
-        if gene in gene_name_to_index_1:
-            index = gene_name_to_index_1[gene]
-            expressions_1 = np.array(f['{}_log1_tpm'.format(tum_1)][:,index])
-        else:
-            expressions_1 = np.zeros(len(cells_1))
-        df_1 = pd.DataFrame(
-            data={'color_by': expressions_1},
-            index=cells_1
-        )
-
-        cells_2 = [
-            str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
-        ]
-        genes_2 = [
-            str(x)[2:-1]
-            for x in f['{}_gene_name'.format(tum_2)][:]
-        ]
-        gene_name_to_index_2 = {
-            gene_name: index
-            for index, gene_name in enumerate(genes_2)
-        }
-        if gene in gene_name_to_index_2:
-            index = gene_name_to_index_2[gene]
-            expressions_2 = np.array(f['{}_log1_tpm'.format(tum_2)][:,index])
-        else:
-            expressions_2 = np.zeros(len(cells_2))
-        df_2 = pd.DataFrame(
-            data={'color_by': expressions_2},
-            index=cells_2
-        ) 
-
-        df = pd.concat([df_1, df_2])
-        df = df.loc[cells]
-        return df
-
-
-def load_tumor_cell_type_probabilities_mult_tumors(
+def load_color_by_real_value_mult_tumors(
         tum_1,
         tum_2,
         cells,
-        cell_type
+        data_suffix,
+        col_suffix,
+        feat
     ):
+    """
+    Load the dataframe used to color each point on a dimension-reduction
+    plot using real-valued features such as gene expression or cell type
+    probability.
+    """
     with h5py.File('../../charts.h5', 'r') as f:
+        # Load data for first tumor
         cells_1 = [
             str(x)[2:-1]
             for x in f['{}_cell'.format(tum_1)][:]
         ]
-        cell_types_1 = [
+        cols_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_probability_columns'.format(tum_1)][:]
+            for x in f['{}_{}'.format(tum_1, data_suffix)][:]
         ]
-        cell_type_to_index_1 = {
-            cell_type: index
-            for index, cell_type in enumerate(cell_types_1)
+        col_to_index_1 = {
+            col: index
+            for index, col in enumerate(cols_1)
         }
-        if cell_type in cell_type_to_index_1:
-            index = cell_type_to_index_1[cell_type]
-            probs_1 = np.array(f['{}_cell_type_probability'.format(tum_1)][:,index])
+        if feat in col_to_index_1:
+            index = col_to_index_1[feat]
+            key = '{}_{}'.format(tum_1, data_suffix)
+            vals_1 = np.array(f[key][:,index])
         else:
-            probs_1 = np.zeros(len(cells_1))
+            vals_1 = np.zeros(len(cells_1))
         df_1 = pd.DataFrame(
-            data={'color_by': probs_1},
+            data={'color_by': vals_1},
             index=cells_1
         )
-
+        # Load data for second tumor
         cells_2 = [
             str(x)[2:-1]
             for x in f['{}_cell'.format(tum_2)][:]
         ]
-        cell_types_2 = [
+        cols_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_probability_columns'.format(tum_2)][:]
+            for x in f['{}_{}'.format(tum_2, col_suffix)][:]
         ]
-        cell_type_to_index_2 = {
-            cell_type: index
-            for index, cell_type in enumerate(cell_types_2)
+        col_to_index_2 = {
+            col: index
+            for index, col in enumerate(cols_2)
         }
-        if cell_type in cell_type_to_index_2:
-            index = cell_type_to_index_2[cell_type]
-            probs_2 = np.array(f['{}_cell_type_probability'.format(tum_2)][:,index])
+        if feat in col_to_index_2:
+            index = col_to_index_2[feat]
+            vals_2 = np.array(f['{}_{}'.format(tum_2, data_suffix)][:,index])
         else:
-            probs_2 = np.zeros(len(cells_2))
+            vals_2 = np.zeros(len(cells_2))
         df_2 = pd.DataFrame(
-            data={'color_by': probs_2},
+            data={'color_by': vals_2},
             index=cells_2
         )
-
+        # Join the two dataframes
         df = pd.concat([df_1, df_2])
         df = df.loc[cells]
         return df
+
 
 
 def load_cell_type_classifications_mult_tumors(

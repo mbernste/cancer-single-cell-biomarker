@@ -196,10 +196,19 @@ def build_features_selector(idd, tumor, category):
             id=idd
         )
     elif category == 'hallmark_enrichment':
-        return common.build_hallmark_enrichment_dropdown(
-            tumor,
-            idd
-        )
+        if '&' in tumor:
+            tum_1 = tumor.split('&')[0]
+            tum_2 = tumor.split('&')[1]
+            return common.build_hallmark_enrichment_dropdown_mult_tumors(
+                tum_1,
+                tum_2,
+                idd
+            )
+        else:
+            return common.build_hallmark_enrichment_dropdown(
+                tumor,
+                idd
+            )
 
 def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     if algo == 'umap':
@@ -214,21 +223,32 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
             tum_1 = tums[0]
             tum_2 = tums[1]
             if category == 'gene':
-                df_color = load_data.load_gene_mult_tumors(
-                    tum_1, 
-                    tum_2, 
-                    df_dim_reduc.index, 
-                    feat
-                )
-            elif category == 'cell_type_probability':
-                df_color = load_data.load_tumor_cell_type_probabilities_mult_tumors(
+                df_color = load_data.load_color_by_real_value_mult_tumors(
                     tum_1,
                     tum_2,
                     df_dim_reduc.index,
+                    'log1_tpm',
+                    'gene_name',
+                    feat
+                )
+            elif category == 'cell_type_probability':
+                df_color = load_data.load_color_by_real_value_mult_tumors(
+                    tum_1,
+                    tum_2,
+                    df_dim_reduc.index,
+                    'cell_type_probability',
+                    'cell_type_probability_columns',
                     feat
                 )
             elif category == 'hallmark_enrichment':
-                pass # TODO handle this
+                df_color = load_data.load_color_by_real_value_mult_tumors(
+                    tum_1,
+                    tum_2,
+                    df_dim_reduc.index,
+                    'hallmark_gsva',
+                    'hallmark_gene_set_name',
+                    feat
+                )
         else:
             if category == 'gene':
                 df_color = load_data.load_tumor_gene(tumor_id, feat)
