@@ -76,11 +76,26 @@ def build_tumor_dropdown(html_id, width=None):
         {'label': 'LX682 (lung adenocarcinoma)', 'value': 'LX682'},
         {'label': 'LX684 (lung adenocarcinoma)', 'value': 'LX684'},
         {'label': 'PJ016 + PJ018', 'value': 'PJ016&PJ018'},
+        {'label': 'PJ016 + PJ017', 'value': 'PJ016&PJ017'},
         {'label': 'PJ016 + PJ025', 'value': 'PJ016&PJ025'},
+        {'label': 'PJ017 + PJ018', 'value': 'PJ017&PJ018'},
+        {'label': 'PJ017 + PJ025', 'value': 'PJ017&PJ025'},
         {'label': 'PJ018 + PJ025', 'value': 'PJ018&PJ025'},
         {'label': 'PJ016 + LX653', 'value': 'PJ016&LX653'},
+        {'label': 'PJ016 + LX676', 'value': 'PJ016&LX676'},
+        {'label': 'PJ016 + LX682', 'value': 'PJ016&LX682'},
+        {'label': 'PJ017 + LX653', 'value': 'PJ017&LX653'},
+        {'label': 'PJ017 + LX676', 'value': 'PJ017&LX676'},
+        {'label': 'PJ017 + LX682', 'value': 'PJ017&LX682'},
         {'label': 'PJ018 + LX653', 'value': 'PJ018&LX653'},
-        {'label': 'PJ025 + LX653', 'value': 'PJ025&LX653'}
+        {'label': 'PJ018 + LX676', 'value': 'PJ018&LX676'},
+        {'label': 'PJ018 + LX682', 'value': 'PJ018&LX682'},
+        {'label': 'PJ025 + LX653', 'value': 'PJ025&LX653'},
+        {'label': 'PJ025 + LX676', 'value': 'PJ025&LX676'},
+        {'label': 'PJ025 + LX682', 'value': 'PJ025&LX682'},
+        {'label': 'LX653 + LX676', 'value': 'LX653&LX676'},
+        {'label': 'LX653 + LX682', 'value': 'LX653&LX682'},
+        {'label': 'LX676 + LX682', 'value': 'LX676&LX682'}
     ]
     if width:
         style={"width": width}

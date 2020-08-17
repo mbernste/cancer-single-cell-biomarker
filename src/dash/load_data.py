@@ -13,6 +13,23 @@ def load_tumor_gene_names(tumor):
             for x in f['{}_gene_name'.format(tumor)][:]
         ])
 
+def hover_texts(tumor, cells):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tumor)][:]
+        ]
+        texts = [
+            str(x)[2:-1]
+            for x in f['{}_cell_type_hover_texts'.format(tumor)]
+        ]
+    df = pd.DataFrame(
+        data={'hover_texts': texts},
+        index=cells
+    )
+    df = df.loc[cells]
+    return list(df['hover_texts'])     
+
 def cell_type_probability_columns(tumor, min_prob=None):
     with h5py.File('../../charts.h5', 'r') as f:
         cols = [
@@ -149,6 +166,20 @@ def load_tumor_hallmark_enrichment(tumor, gene_set):
     return df
 
 
+def load_malignancy_score(tumor):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tumor)][:]
+        ]
+        scores = np.array(f['{}_malignancy_score'.format(tumor)][:])
+    df = pd.DataFrame(
+        data={'color_by': scores},
+        index=cells
+    )
+    return df
+
+
 def load_color_by_real_value_mult_tumors(
         tum_1,
         tum_2,
@@ -170,7 +201,7 @@ def load_color_by_real_value_mult_tumors(
         ]
         cols_1 = [
             str(x)[2:-1]
-            for x in f['{}_{}'.format(tum_1, data_suffix)][:]
+            for x in f['{}_{}'.format(tum_1, col_suffix)][:]
         ]
         col_to_index_1 = {
             col: index
@@ -213,6 +244,34 @@ def load_color_by_real_value_mult_tumors(
         df = df.loc[cells]
         return df
 
+def load_malignancy_score_mult_tumors(tum_1, tum_2, cells):
+    with h5py.File('../../charts.h5', 'r') as f:
+        # Load data for first tumor
+        cells_1 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_1)][:]
+        ]
+        key = '{}_malignancy_score'.format(tum_1)
+        vals_1 = np.array(f[key][:])
+        df_1 = pd.DataFrame(
+            data={'color_by': vals_1},
+            index=cells_1
+        )
+        # Load data for second tumor
+        cells_2 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_2)][:]
+        ]
+        key = '{}_malignancy_score'.format(tum_2)
+        vals_2 = np.array(f[key][:])
+        df_2 = pd.DataFrame(
+            data={'color_by': vals_2},
+            index=cells_2
+        )
+        # Join the two dataframes
+        df = pd.concat([df_1, df_2])
+        df = df.loc[cells]
+        return df
 
 
 def load_cell_type_classifications_mult_tumors(

@@ -152,7 +152,8 @@ def build_feature_category_selector(idd):
             {'label': 'Gene', 'value': 'gene'},
             {'label': 'Cluster', 'value': 'cluster'},
             {'label': 'Cell Type Probability', 'value': 'cell_type_probability'},
-            {'label': 'Cell Type Classification', 'value': 'cell_type_classification'},
+            {'label': 'Predicted Cell Type', 'value': 'cell_type_classification'},
+            {'label': 'Malignancy Score', 'value': 'malignancy_score'},
             {'label': 'Hallmark Gene Set Score', 'value': 'hallmark_enrichment'},
             {'label': 'Tumor', 'value': 'tumor'}
         ],
@@ -209,6 +210,13 @@ def build_features_selector(idd, tumor, category):
                 tumor,
                 idd
             )
+    elif category == 'malignancy_score':
+        return dcc.Dropdown(
+            options=[{'label': 'Malignancy Score', 'value': 'Malignancy Score'}],
+            value='Malignancy Score',
+            id=idd
+        )
+
 
 def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     if algo == 'umap':
@@ -216,7 +224,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     elif algo == 'phate':
         df_dim_reduc = load_data.load_tumor_phate(tumor_id, num_dims)
 
-    if category == 'gene' or category == 'cell_type_probability' or category == 'hallmark_enrichment':
+    hover_texts = load_data.hover_texts(tumor_id, df_dim_reduc.index)
+
+    if category in set(['gene', 'cell_type_probability', 'hallmark_enrichment', 'malignancy_score']):
         # Check if this is an aligned set of tumors
         if '&' in tumor_id:
             tums = tumor_id.split('&')
@@ -249,6 +259,12 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                     'hallmark_gene_set_name',
                     feat
                 )
+            elif category == 'malignancy_score':
+                df_color = load_data.load_malignancy_score_mult_tumors(
+                    tum_1,
+                    tum_2,
+                    df_dim_reduc.index
+                )
         else:
             if category == 'gene':
                 df_color = load_data.load_tumor_gene(tumor_id, feat)
@@ -262,7 +278,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                     tumor_id, 
                     feat
                 )     
-            
+            elif category == 'malignancy_score':
+                df_color = load_data.load_malignancy_score(tumor_id)
+
         col = 'color_by'
 
         # Determine color range
@@ -312,7 +330,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                 z=df[df_dim_reduc.columns[2]],
                 mode='markers',
                 marker=markers,
-                showlegend=False
+                showlegend=False,
+                hovertemplate="%{hovertext}<extra></extra>",
+                hovertext=hover_texts
             )])
         elif num_dims == 2:
             if len(df) > 5000:
@@ -335,7 +355,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                 y=df[df_dim_reduc.columns[1]],
                 mode='markers',
                 marker=markers,
-                showlegend=False
+                showlegend=False,
+                hovertemplate="%{hovertext}<extra></extra>",
+                hovertext=hover_texts
             )])
     elif category == 'cluster' or category == 'tumor' or category == 'cell_type_classification':
         if category == 'cluster':
@@ -382,6 +404,11 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
 
         col = 'color_by'
         df = df_dim_reduc.join(df_color)
+        # Convert hover-texts to a dataframe so that we can plot subsets at a time
+        hover_df = pd.DataFrame(
+            data={'hover_text': hover_texts},
+            index=df.index
+        )
         fig = go.Figure()
         for clust_i, group in enumerate(sorted(set(df[col]))):
             df_clust = df.loc[df[col] == group]
@@ -407,7 +434,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                         z=df_clust[df_clust.columns[2]],
                         mode='markers',
                         marker=markers,
-                        name=group_name
+                        name=group_name,
+                        hovertemplate="%{hovertext}<extra></extra>",
+                        hovertext=list(hover_df.loc[df_clust.index]['hover_text'])
                     )
                 )
             elif num_dims == 2:
@@ -417,7 +446,9 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                         y=df_clust[df_clust.columns[1]],
                         mode='markers',
                         marker=markers,
-                        name=group_name
+                        name=group_name,
+                        hovertemplate="%{hovertext}<extra></extra>",
+                        hovertext=list(hover_df.loc[df_clust.index]['hover_text'])
                     )
                 )
 
