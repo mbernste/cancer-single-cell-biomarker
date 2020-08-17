@@ -483,7 +483,14 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
             showticklabels=False
         ),
         xaxis_title=df_dim_reduc.columns[0],
-        yaxis_title=df_dim_reduc.columns[1]
+        yaxis_title=df_dim_reduc.columns[1],
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1
+        )
     )
     return fig
 
