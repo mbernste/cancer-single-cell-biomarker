@@ -15,6 +15,8 @@ SCATTER_HEIGHT = '550px'
 
 FIG_DIM = 600
 
+# Default settings
+DEFAULT_NUM_DIM = 3
 
 # Color blind palette from:
 # https://jacksonlab.agronomy.wisc.edu/2016/05/23/15-level-colorblind-friendly-palette/
@@ -142,7 +144,7 @@ def build_num_dims_selector(idd):
             {'label': '2', 'value': 2},
             {'label': '3', 'value': 3}
         ],
-        value=3,
+        value=DEFAULT_NUM_DIM,
         id=idd
     )
 
@@ -494,28 +496,6 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     )
     return fig
 
-def _build_reduc_card(title, graph_id):
-    return dbc.Card(
-        [
-            dbc.CardHeader(
-                title,
-                style={
-                    "background-color":"#e3e3e3",
-                    "font-weight":"bold",
-                    "font-size":"Large",
-                    "text-align": "center"
-                }
-            ),
-            dbc.CardBody([
-                dcc.Graph(
-                    id=graph_id,
-                    figure=_build_dim_reduc('PJ017', 'umap', 3, 'OLIG1', 'gene', 2)
-                )
-            ], style={"height": "10vh", "width": "100%"})
-        ],
-        style={"height": SCATTER_HEIGHT, "width": "100%"}
-        #style={"height": "100%", "width": "50%"}
-    )
 
 def _build_control_panel(plot_num):
     return [
@@ -605,7 +585,15 @@ LAYOUT = dcc.Tab(
                                          dbc.Row(html.Hr(), style={'height': '1%'}),
                                          dcc.Graph(
                                             id='dim-reduc-scatter-1',
-                                            figure=_build_dim_reduc('PJ017', 'umap', 3, 'OLIG1', 'gene', 2)
+                                            figure=_build_dim_reduc('PJ017', 'umap', DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
+                                            config={
+                                                'displayModeBar': True,
+                                                'toImageButtonOptions': {
+                                                    'format':'svg',
+                                                    'filename': 'dash_plot'
+                                                },
+                                                "displaylogo": False
+                                            }
                                         ),
                                         dbc.Row([
                                             dbc.Col([], width=100, style={"width": "15px"}),
@@ -645,7 +633,15 @@ LAYOUT = dcc.Tab(
                                          dbc.Row(html.Hr(), style={'height': '1%'}),
                                          dcc.Graph(
                                             id='dim-reduc-scatter-2',
-                                            figure=_build_dim_reduc('PJ017', 'umap', 3, 'OLIG1', 'gene', 2)
+                                            figure=_build_dim_reduc('PJ017', 'umap', DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
+                                            config={
+                                                'displayModeBar': True,
+                                                'toImageButtonOptions': {
+                                                    'format':'svg',
+                                                    'filename': 'dash_plot'
+                                                },
+                                                "displaylogo": False
+                                            }
                                         ),
                                         dbc.Row([
                                             dbc.Col([], width=100, style={"width": "15px"}),
