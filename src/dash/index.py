@@ -15,6 +15,7 @@ from app import app
 import common
 import load_data
 import dim_reduc
+import clust_compare
 
 @app.callback(
     Output(component_id='de-table-1', component_property='data'),
@@ -94,6 +95,7 @@ app.layout = html.Div(children=[
     dbc.Container(fluid=True, children=[
         dcc.Tabs([
             dim_reduc.LAYOUT,
+            clust_compare.LAYOUT,
             dcc.Tab(
                 label='Differential Expression',
                 children=[

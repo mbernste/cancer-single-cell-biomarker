@@ -310,6 +310,44 @@ def load_cell_type_classifications_mult_tumors(
         df = df.loc[cells]
         return df
 
+
+def load_hover_texts_mult_tumors(
+        tum_1,
+        tum_2,
+        cells
+    ):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells_1 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_1)][:]
+        ]
+        texts_1 = [
+            str(x)[2:-1]
+            for x in f['{}_cell_type_hover_texts'.format(tum_1)]
+        ]
+        df_1 = pd.DataFrame(
+            data={'hover_texts': texts_1},
+            index=cells_1
+        )
+
+        cells_2 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_2)][:]
+        ]
+        texts_2 = [
+            str(x)[2:-1]
+            for x in f['{}_cell_type_hover_texts'.format(tum_2)]
+        ]
+        df_2 = pd.DataFrame(
+            data={'hover_texts': texts_2},
+            index=cells_2
+        )
+
+        df = pd.concat([df_1, df_2])
+        df = df.loc[cells]
+        return list(df['hover_texts'])
+
+
 def load_clusters_mult_tumors(
         tum_1,
         tum_2,
@@ -348,17 +386,35 @@ def load_clusters_mult_tumors(
 
 
 def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
-    tumors = []
-    for cell in cells:
-        if tum_1 in cell:
-            tumors.append(tum_1)
-        elif tum_2 in cell:
-            tumors.append(tum_2)
-    return pd.DataFrame(
-        data={'color_by': tumors},
-        index=cells
-    )
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells_1 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_1)][:]
+        ]
+        tumors_1 = [
+            str(x)[2:-1]
+            for x in f['{}_tumor'.format(tum_1)][:]
+        ]
+        df_1 = pd.DataFrame(
+            data={'color_by': tumors_1},
+            index=cells_1
+        )
 
+        cells_2 = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tum_2)][:]
+        ]
+        tumors_2 = [
+            str(x)[2:-1]
+            for x in f['{}_tumor'.format(tum_2)][:]
+        ]
+        df_2 = pd.DataFrame(
+            data={'color_by': tumors_2},
+            index=cells_2
+        )
+        df = pd.concat([df_1, df_2])
+        df = df.loc[cells]
+        return df
 
 def load_tumor_phate(tumor, num_dims):
     with h5py.File('../../charts.h5', 'r') as f:
@@ -387,5 +443,25 @@ def load_tumor_umap(tumor, num_dims):
         columns=['UMAP {}'.format(x+1) for x in range(num_dims)]
     )
     return df
+
+def load_gsva_compare_cluster():
+    with h5py.File('../../charts.h5', 'r') as f:
+        cols = [
+            ' '.join(str(x)[2:-1].split('_')[1:]).lower()
+            for x in f['gsva_compare_cluster_gene_set_name'][:]
+        ]
+        clusts = [
+            str(x)[2:-1]
+            for x in f['gsva_compare_cluster_cluster'][:]
+        ]
+        scores = f['gsva_compare_cluster'][:]
+    
+    df = pd.DataFrame(
+        data=scores,
+        index=clusts,
+        columns=cols
+    )
+    return df
+
 
 
