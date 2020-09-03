@@ -1,0 +1,399 @@
+{
+    "PJ016": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "female",
+        "cancer_type": "glioblastoma",
+        "grade": "4",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 R132"
+    },
+    "PJ017": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "male",
+        "cancer_type": "glioblastoma",
+        "grade": "4",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ018": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "male",
+        "cancer_type": "glioblastoma",
+        "grade": "4",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ025": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "male",
+        "cancer_type": "glioblastoma",
+        "grade": "4",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ030": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "female",
+        "cancer_type": "anaplastic astrocytoma",
+        "grade": "3",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ032": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "female",
+        "cancer_type": "glioblastoma",
+        "grade": "unknown",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ035": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "male",
+        "cancer_type": "glioblastoma",
+        "grade": "unknown",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "PJ048": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/30041684/",
+        "pub_name": "Yuan et al. (2018)",
+        "sex": "male",
+        "cancer_type": "glioblastoma",
+        "grade": "4",
+        "stage": "NA",
+        "genomic_alteration": "IDH1 wild-type"
+    },
+    "LX653": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown",
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1A",
+        "genomic_alteration": "Mutated genes: EGFR, KMT2D, U2AF1, RET"    
+    },
+    "LX661": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1A",
+        "genomic_alteration": "Mutated genes: EGFR, TP53"
+    },
+    "LX675": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "4",
+        "genomic_alteration": "Mutated genes: EGFR"
+    },
+    "LX676": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1A",
+        "genomic_alteration": "unknown"
+    },
+    "LX679": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "2A",
+        "genomic_alteration": "Mutated genes: KRAS"
+    },
+    "LX680": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1B",
+        "genomic_alteration": "Mutated genes: TP53"
+    },
+    "LX682": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown", 
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1B",
+        "genomic_alteration": "Mutated genes: KRAS"
+    },
+    "LX684": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown",
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1A",
+        "genomic_alteration": "Mutated genes: KRAS"
+    },
+    "LX684": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
+        "pub_name": "Laughney et al. (2020)",
+        "sex": "unknown",
+        "cancer_type": "lung adenocarcinoma",
+        "grade": "unknown",
+        "stage": "1A",
+        "genomic_alteration": "Mutated genes: KRAS"
+    },
+    "GSE146026.1": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "BRCA wild-type"
+    },
+    "GSE146026.2": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "BRCA wild-type"
+    },
+    "GSE146026.3": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "unknown"
+    },
+    "GSE146026.4": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "BRCA wild-type"
+    },
+    "GSE146026.5": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "BRCA wild-type"
+    },
+    "GSE146026.6": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
+        "pub_name": "Izar et al. (2020)",
+        "sex": "female",
+        "cancer_type": "serous ovarian cancer",
+        "grade": "high",
+        "stage": "unknown",
+        "genomic_alteration": "unknown"
+    },
+    "GSE72056.53": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "77",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.58": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "67",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.59": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "80",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.60": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "69",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF V600K, NRAS wild-type"
+    },
+    "GSE72056.65": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "65",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF V600E, NRAS wild-type"
+    },
+    "GSE72056.67": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "58",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF V600E, NRAS wild-type"
+    },
+    "GSE72056.71": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "79",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS Q61L"
+    },
+    "GSE72056.72": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "57",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS Q61R"
+    },
+    "GSE72056.74": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "63",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "unknown"
+    },
+    "GSE72056.75": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "80",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.78": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "73",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS Q61L"
+    },
+    "GSE72056.79": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "74",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.80": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "86",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS Q61L"
+    },
+    "GSE72056.81": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "43",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF V600E, NRAS wild-type"
+    },
+    "GSE72056.82": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "81",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.84": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "67",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.88": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "54",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE72056.89": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "67",
+        "sex": "male",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "unknown"
+    },
+    "GSE72056.94": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/27124452/",
+        "pub_name": "Tirosh et al. (2016)",
+        "age": "54",
+        "sex": "female",
+        "cancer_type": "melanoma",
+        "grade": "uknown",
+        "stage": "unknown",
+        "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    }
+}
