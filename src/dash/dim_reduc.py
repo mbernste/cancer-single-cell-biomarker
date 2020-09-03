@@ -16,7 +16,8 @@ SCATTER_HEIGHT = '550px'
 FIG_DIM = 600
 
 # Default settings
-DEFAULT_NUM_DIM = 3
+DEFAULT_NUM_DIM = 2
+DEFAULT_ALGO = 'umap'
 
 # Color blind palette from:
 # https://jacksonlab.agronomy.wisc.edu/2016/05/23/15-level-colorblind-friendly-palette/
@@ -76,6 +77,15 @@ PALETTE = [
     "#8756e4", #  purpley
 ]
 
+TUMOR_INFO_TEMPLATE = """
+    <link type="text/css" rel="Stylesheet" href="https://codepen.io/chriddyp/pen/bWLwgP.css" />
+    Cancer type: {typpe}<br>
+    Sex: {sex}<br>
+    Grade: {grade}<br>
+    Stage: {stage}<br>
+    Genomic alteration: {gen}<br>
+    Publication: <a href={url} target="_blank">{name}</a><br>
+"""
 
 @app.callback(
     Output(component_id='dim-reduc-scatter-1', component_property='figure'),
@@ -103,6 +113,44 @@ def update_feature_category_selector_1(tumor, category):
     return build_features_selector('color-by-feature-1', tumor, category)
 
 @app.callback(
+    Output(component_id='msg-box-1', component_property='srcDoc'),
+    [
+        Input(component_id='select-tumor-1', component_property='value'),
+        Input(component_id='select-feature-category-1', component_property='value')
+    ]
+)
+def _update_msg(tum, feat):
+    meta = load_data.get_tumor_meta(tum)
+    return TUMOR_INFO_TEMPLATE.format(
+        url=meta['pub_url'],
+        name=meta['pub_name'],
+        typpe=meta['cancer_type'],
+        sex=meta['sex'],
+        grade=meta['grade'],
+        stage=meta['stage'],
+        gen=meta['genomic_alteration']
+    )
+
+@app.callback(
+    Output(component_id='msg-box-2', component_property='srcDoc'),
+    [
+        Input(component_id='select-tumor-2', component_property='value'),
+        Input(component_id='select-feature-category-2', component_property='value')
+    ]
+)
+def _update_msg(tum, feat):
+    meta = load_data.get_tumor_meta(tum)
+    return TUMOR_INFO_TEMPLATE.format(
+        url=meta['pub_url'],
+        name=meta['pub_name'],
+        typpe=meta['cancer_type'],
+        sex=meta['sex'],
+        grade=meta['grade'],
+        stage=meta['stage'],
+        gen=meta['genomic_alteration']
+    )
+
+@app.callback(
     Output(component_id='dim-reduc-scatter-2', component_property='figure'),
     [
         Input(component_id='select-tumor-2', component_property='value'),
@@ -115,7 +163,6 @@ def update_feature_category_selector_1(tumor, category):
 )
 def update_dim_reduc_2(tumor, algo, num_dims, gene, category, dot_size):
     return _build_dim_reduc(tumor, algo, num_dims, gene, category, dot_size)
-
 
 @app.callback(
     Output(component_id='color-by-feature-container-2', component_property='children'),
@@ -134,7 +181,7 @@ def build_dim_reduc_selector(idd):
             {'label': 'UMAP', 'value': 'umap'},
             {'label': 'PHATE', 'value': 'phate'}
         ],
-        value='phate',
+        value=DEFAULT_ALGO,
         id=idd
     )
 
@@ -156,12 +203,14 @@ def build_feature_category_selector(idd):
             {'label': 'Cell Type Probability', 'value': 'cell_type_probability'},
             {'label': 'Predicted Cell Type', 'value': 'cell_type_classification'},
             {'label': 'Malignancy Score', 'value': 'malignancy_score'},
+            {'label': 'CancerSEA Gene Set Score', 'value': 'cancersea_enrichment'},
             {'label': 'Hallmark Gene Set Score', 'value': 'hallmark_enrichment'},
             {'label': 'Tumor', 'value': 'tumor'}
         ],
         value='gene',
         id=idd
     )
+
 
 def build_features_selector(idd, tumor, category):
     if category == 'gene':
@@ -212,6 +261,20 @@ def build_features_selector(idd, tumor, category):
                 tumor,
                 idd
             )
+    elif category == 'cancersea_enrichment':
+        if '&' in tumor:
+            tum_1 = tumor.split('&')[0]
+            tum_2 = tumor.split('&')[1]
+            return common.build_cancersea_enrichment_dropdown_mult_tumors(
+                tum_1,
+                tum_2,
+                idd
+            )
+        else:
+            return common.build_cancersea_enrichment_dropdown(
+                tumor,
+                idd
+            )
     elif category == 'malignancy_score':
         return dcc.Dropdown(
             options=[{'label': 'Malignancy Score', 'value': 'Malignancy Score'}],
@@ -226,9 +289,19 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
     elif algo == 'phate':
         df_dim_reduc = load_data.load_tumor_phate(tumor_id, num_dims)
 
-    hover_texts = load_data.hover_texts(tumor_id, df_dim_reduc.index)
+    if '&' in tumor_id:
+        tums = tumor_id.split('&')
+        tum_1 = tums[0]
+        tum_2 = tums[1]
+        hover_texts = load_data.load_hover_texts_mult_tumors( 
+            tum_1,
+            tum_2,
+            df_dim_reduc.index
+        )
+    else:
+        hover_texts = load_data.hover_texts(tumor_id, df_dim_reduc.index)
 
-    if category in set(['gene', 'cell_type_probability', 'hallmark_enrichment', 'malignancy_score']):
+    if category in set(['gene', 'cell_type_probability', 'hallmark_enrichment', 'cancersea_enrichment', 'malignancy_score']):
         # Check if this is an aligned set of tumors
         if '&' in tumor_id:
             tums = tumor_id.split('&')
@@ -261,6 +334,15 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                     'hallmark_gene_set_name',
                     feat
                 )
+            elif category == 'cancersea_enrichment':
+                df_color = load_data.load_color_by_real_value_mult_tumors(
+                    tum_1,
+                    tum_2,
+                    df_dim_reduc.index,
+                    'cancersea_gsva',
+                    'cancersea_gene_set_name',
+                    feat
+                )
             elif category == 'malignancy_score':
                 df_color = load_data.load_malignancy_score_mult_tumors(
                     tum_1,
@@ -279,7 +361,12 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
                 df_color = load_data.load_tumor_hallmark_enrichment(
                     tumor_id, 
                     feat
-                )     
+                )
+            elif category == 'cancersea_enrichment':
+                df_color = load_data.load_tumor_cancersea_enrichment(
+                    tumor_id,
+                    feat
+                )
             elif category == 'malignancy_score':
                 df_color = load_data.load_malignancy_score(tumor_id)
 
@@ -289,7 +376,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
         if category == 'cell_type_probability':
             cmin = 0.0
             cmax = 1.0
-        elif category == 'hallmark_enrichment':
+        elif category == 'hallmark_enrichment' or category == 'cancersea_enrichment':
             end = max(
                 abs(min(df_color[col])), 
                 abs(max(df_color[col]))
@@ -305,7 +392,7 @@ def _build_dim_reduc(tumor_id, algo, num_dims, feat, category, dot_size):
             cmax = color_range[1]
 
         # Determine color map
-        if category == 'hallmark_enrichment':
+        if category == 'hallmark_enrichment' or category == 'cancersea_enrichment':
             palette = 'RdBu'
         else:
             palette = 'Viridis'
@@ -558,115 +645,122 @@ def _build_control_panel(plot_num):
         ])
     ]
 
-
-LAYOUT = dcc.Tab(
-    label='Dimension Reduction',
-    children=[
-        dbc.Container(fluid=True, children=[
-            dbc.Row(html.Hr(), style={'height': '1%'}),
-            dbc.Row(children=[
-                dbc.Col(width=100, style={'width': '1%'}),
-                dbc.Row(
-                    [
-                        dbc.Card(
-                            children=[
-                                dbc.CardHeader(
-                                    "Plot 1",
-                                    style={
-                                        "background-color":"#e3e3e3",
-                                        "font-weight":"bold",
-                                        "font-size":"Large",
-                                        "text-align": "center"
-                                    }
-                                ),
-                                dbc.CardBody(
-                                    _build_control_panel(1)
-                                    + [
-                                         dbc.Row(html.Hr(), style={'height': '1%'}),
-                                         dcc.Graph(
-                                            id='dim-reduc-scatter-1',
-                                            figure=_build_dim_reduc('PJ017', 'umap', DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
-                                            config={
-                                                'displayModeBar': True,
-                                                'toImageButtonOptions': {
-                                                    'format':'svg',
-                                                    'filename': 'dash_plot'
-                                                },
-                                                "displaylogo": False
-                                            }
-                                        ),
-                                        dbc.Row([
-                                            dbc.Col([], width=100, style={"width": "15px"}),
-                                            dbc.Col([
-                                                html.H6("Dot size: ")
-                                            ], width=100, style={"width": "40%"}),
-                                            dbc.Col([
-                                                dcc.Slider(
-                                                    min=1,
-                                                    max=6,
-                                                    #step=None,
-                                                    value=2,
-                                                    id='dot-size-1'
-                                                )
+def dim_reduc():
+    layout = dcc.Tab(
+        label='Dimension Reduction',
+        children=[
+            dbc.Container(fluid=True, children=[
+                dbc.Row(html.Hr(), style={'height': '1%'}),
+                dbc.Row(children=[
+                    dbc.Col(width=100, style={'width': '1%'}),
+                    dbc.Row(
+                        [
+                            dbc.Card(
+                                children=[
+                                    dbc.CardHeader(
+                                        "Plot 1",
+                                        style={
+                                            "background-color":"#e3e3e3",
+                                            "font-weight":"bold",
+                                            "font-size":"Large",
+                                            "text-align": "center"
+                                        }
+                                    ),
+                                    dbc.CardBody(
+                                        _build_control_panel(1)
+                                        + [
+                                            dbc.Row(html.Hr(), style={'height': '3%'}),
+                                            html.Div(["Tumor Information:"]),
+                                            html.Div([html.Iframe(srcDoc='Hi there', id='msg-box-1', style={"width": "100%", "border": "0", "height": "80px"})], style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}),
+                                            dbc.Row(html.Hr(), style={'height': '3%'}),
+                                            dcc.Graph(
+                                                id='dim-reduc-scatter-1',
+                                                figure=_build_dim_reduc('PJ017', DEFAULT_ALGO, DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
+                                                config={
+                                                    'displayModeBar': True,
+                                                    'toImageButtonOptions': {
+                                                        'format':'svg',
+                                                        'filename': 'dash_plot'
+                                                    },
+                                                    "displaylogo": False
+                                                }
+                                            ),
+                                            dbc.Row([
+                                                dbc.Col([], width=100, style={"width": "15px"}),
+                                                dbc.Col([
+                                                    html.H6("Dot size: ")
+                                                ], width=100, style={"width": "40%"}),
+                                                dbc.Col([
+                                                    dcc.Slider(
+                                                        min=1,
+                                                        max=6,
+                                                        #step=None,
+                                                        value=2,
+                                                        id='dot-size-1'
+                                                    )
+                                                ])
                                             ])
-                                        ])
-                                    ]
-                                )
-                            ]
-                            #width={"size": "auto", "order": 1}
-                        ),
-                        dbc.Col([], width=100, style={"width": "15px"}),
-                        dbc.Card(
-                            children=[
-                                dbc.CardHeader(
-                                    "Plot 2",
-                                    style={
-                                        "background-color":"#e3e3e3",
-                                        "font-weight":"bold",
-                                        "font-size":"Large",
-                                        "text-align": "center"
-                                    }
-                                ),
-                                dbc.CardBody(
-                                    _build_control_panel(2)
-                                    + [
-                                         dbc.Row(html.Hr(), style={'height': '1%'}),
-                                         dcc.Graph(
-                                            id='dim-reduc-scatter-2',
-                                            figure=_build_dim_reduc('PJ017', 'umap', DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
-                                            config={
-                                                'displayModeBar': True,
-                                                'toImageButtonOptions': {
-                                                    'format':'svg',
-                                                    'filename': 'dash_plot'
-                                                },
-                                                "displaylogo": False
-                                            }
-                                        ),
-                                        dbc.Row([
-                                            dbc.Col([], width=100, style={"width": "15px"}),
-                                            dbc.Col([
-                                                html.H6("Dot size: ")
-                                            ], width=100, style={"width": "40%"}),
-                                            dbc.Col([
-                                                dcc.Slider(
-                                                    min=1,
-                                                    max=6,
-                                                    #step=None,
-                                                    value=2,
-                                                    id='dot-size-2'
-                                                )
+                                        ]
+                                    )
+                                ]
+                                #width={"size": "auto", "order": 1}
+                            ),
+                            dbc.Col([], width=100, style={"width": "15px"}),
+                            dbc.Card(
+                                children=[
+                                    dbc.CardHeader(
+                                        "Plot 2",
+                                        style={
+                                            "background-color":"#e3e3e3",
+                                            "font-weight":"bold",
+                                            "font-size":"Large",
+                                            "text-align": "center"
+                                        }
+                                    ),
+                                    dbc.CardBody(
+                                        _build_control_panel(2)
+                                        + [
+                                            dbc.Row(html.Hr(), style={'height': '3%'}),
+                                            html.Div(["Tumor Information:"]),
+                                            html.Div([html.Iframe(srcDoc='Hi there', id='msg-box-2', style={"width": "100%", "border": "0", "height": "80px"})], style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}),
+                                            dbc.Row(html.Hr(), style={'height': '3%'}),
+                                            dcc.Graph(
+                                                id='dim-reduc-scatter-2',
+                                                figure=_build_dim_reduc('PJ017', DEFAULT_ALGO, DEFAULT_NUM_DIM, 'OLIG1', 'gene', 2),
+                                                config={
+                                                    'displayModeBar': True,
+                                                    'toImageButtonOptions': {
+                                                        'format':'svg',
+                                                        'filename': 'dash_plot'
+                                                    },
+                                                    "displaylogo": False
+                                                }
+                                            ),
+                                            dbc.Row([
+                                                dbc.Col([], width=100, style={"width": "15px"}),
+                                                dbc.Col([
+                                                    html.H6("Dot size: ")
+                                                ], width=100, style={"width": "40%"}),
+                                                dbc.Col([
+                                                    dcc.Slider(
+                                                        min=1,
+                                                        max=6,
+                                                        #step=None,
+                                                        value=2,
+                                                        id='dot-size-2'
+                                                    )
+                                                ])
                                             ])
-                                        ])
-                                    ]
-                                )
-                            ]
-                            #width={"size": "auto", "order": 1}
-                        )
-                    ], 
-                    style={"width": "80%"}
-                )
+                                        ]
+                                    )
+                                ]
+                                #width={"size": "auto", "order": 1}
+                            )
+                        ], 
+                        style={"width": "80%"}
+                    )
+                ])
             ])
-        ])
-    ]
-)
+        ]
+    )
+    return layout

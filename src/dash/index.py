@@ -13,10 +13,13 @@ from dash_table import DataTable
 
 from app import app
 import common
-import load_data
+#import load_data
 import dim_reduc
-import clust_compare
-
+#import clust_compare
+import nav
+import info
+import charts
+"""
 @app.callback(
     Output(component_id='de-table-1', component_property='data'),
     [
@@ -83,9 +86,24 @@ def update_select_cluster_de_1(tumor):
         ],
         '0'
     )
+"""
 
+@app.callback(Output('page-content', 'children'),
+            [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/info':
+        return info.info()
+    else:
+        return charts.charts()
 
+app.layout = html.Div([
+    dcc.Location(id = 'url', refresh = False),
+    html.Div(id = 'page-content')
+])
+
+"""
 app.layout = html.Div(children=[
+    nav.LAYOUT,
     html.H1(children='CHARTS: CHARacterizing Tumor Subpopulations'),
 
     html.Div(children='''
@@ -158,6 +176,7 @@ app.layout = html.Div(children=[
         ])
     ])
 ])
+"""
 
 if __name__ == '__main__':
     app.run_server(debug=True)

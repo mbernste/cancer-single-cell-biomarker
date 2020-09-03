@@ -9,4 +9,4 @@ external_scripts = [
 ]
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', './custom.css']
 #app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], external_scripts=external_scripts)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP], external_scripts=external_scripts, suppress_callback_exceptions=True)
