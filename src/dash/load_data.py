@@ -3,8 +3,11 @@ import h5py
 import numpy as np
 import json
 
-with open('../../charts_data/cluster/cluster_de_genes.json', 'r') as f:
-    tumor_to_cluster_to_de_genes = json.load(f)
+
+def get_tumor_meta(tumor):
+    with open('tumor_metadata.json', 'r') as f:
+        j = json.load(f)
+    return j[tumor]
 
 def load_tumor_gene_names(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
@@ -51,6 +54,16 @@ def hallmark_gene_sets(tumor):
             for x in f['{}_hallmark_gene_set_name'.format(tumor)]
         ]
     return sorted(set(cols))
+
+
+def cancersea_gene_sets(tumor):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cols = [
+            str(x)[2:-1]
+            for x in f['{}_cancersea_gene_set_name'.format(tumor)]
+        ]
+    return sorted(set(cols))
+
 
 def load_tumor_cell_type_classifications(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
@@ -159,6 +172,29 @@ def load_tumor_hallmark_enrichment(tumor, gene_set):
         }
         index = gene_set_to_index[gene_set]
         scores = np.array(f['{}_hallmark_gsva'.format(tumor)][:,index])
+    df = pd.DataFrame(
+        data={'color_by': scores},
+        index=cells
+    )
+    return df
+
+
+def load_tumor_cancersea_enrichment(tumor, gene_set):
+    with h5py.File('../../charts.h5', 'r') as f:
+        cells = [
+            str(x)[2:-1]
+            for x in f['{}_cell'.format(tumor)][:]
+        ]
+        gene_sets = [
+            str(x)[2:-1]
+            for x in f['{}_cancersea_gene_set_name'.format(tumor)][:]
+        ]
+        gene_set_to_index = {
+            gene_set: index
+            for index, gene_set in enumerate(gene_sets)
+        }
+        index = gene_set_to_index[gene_set]
+        scores = np.array(f['{}_cancersea_gsva'.format(tumor)][:,index])
     df = pd.DataFrame(
         data={'color_by': scores},
         index=cells
@@ -462,6 +498,18 @@ def load_gsva_compare_cluster():
         columns=cols
     )
     return df
+
+
+def load_de(tumor, cluster):
+    tum_clust = '{}_{}'.format(tumor, cluster)
+    with h5py.File('../../charts.h5', 'r') as f:
+        genes = [
+            str(x)[2:-1]
+            for x in f['de/{}/gene'.format(tum_clust)][:]
+        ]
+        log_fc = f['de/{}/log_fc'.format(tum_clust)][:]
+        pval_adj = f['de/{}/pval_adj'.format(tum_clust)][:]
+    return genes, log_fc, pval_adj
 
 
 
