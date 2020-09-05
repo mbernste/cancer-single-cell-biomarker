@@ -155,7 +155,7 @@ def build_layout():
                 dbc.Col([], width=100, style={"width": "15px"}),
                 dbc.Col([
                     dbc.CardHeader(
-                        "Table 1",
+                        "Table 2",
                         style={
                             "background-color":"#e3e3e3",
                             "font-weight":"bold",
