@@ -39,10 +39,8 @@ def main():
 
     the_tumors = set()
     with h5py.File(h5_f, 'r') as f:
-        for k in f.keys():
-            the_tumors.add(k.split('_')[0])
-        # The symbol '&' indicates it is an integrated dataset
-        the_tumors = sorted([x for x in the_tumors if '&' not in x and x != 'gsva']) # TODO refactor the database
+        the_tumors = f['per_tumor'].keys()
+        the_tumors = sorted(the_tumors)
 
     print(the_tumors)
 
@@ -53,14 +51,14 @@ def main():
         with h5py.File(h5_f, 'r') as f:
             cells = [
                 str(x)[2:-1]
-                for x in f['{}_cell'.format(tumor)][:]
+                for x in f['per_tumor/{}/cell'.format(tumor)][:]
             ]
             genes = [
                 str(x)[2:-1]
-                for x in f['{}_gene_name'.format(tumor)][:]
+                for x in f['per_tumor/{}/gene_name'.format(tumor)][:]
             ]
-            clusters = f['{}_cluster'.format(tumor)][:]
-            expression = f['{}_log1_tpm'.format(tumor)][:]
+            clusters = f['per_tumor/{}/cluster'.format(tumor)][:]
+            expression = f['per_tumor/{}/log1_tpm'.format(tumor)][:]
 
         # Map each cluster to its cells
         clust_to_cells = defaultdict(lambda: [])
@@ -114,49 +112,28 @@ def main():
         with h5py.File(h5_f, 'r+') as f:
             score_key = '{}_{}_gsva'.format(tumor, collection_name)
             set_key = '{}_{}_gene_set_name'.format(tumor, collection_name)
-            if score_key not in f.keys() and set_key not in f.keys():
-                f.create_dataset(
-                    score_key,
-                    data=cell_scores,
-                    compression='gzip'
-                )
-                f.create_dataset(
-                    set_key,
-                    data=np.array([
-                        x.encode('utf-8')
-                        for x in df_gsva.index
-                    ]),
-                    compression='gzip'
-                )
-            elif overwrite:
-                try:
-                    del f[score_key]
-                except KeyError:
-                    pass
-                try:
-                    del f[set_key]
-                except KeyError:
-                    pass
+            try:
+                del f['per_tumor/{}/{}_gsva'.format(tumor, collection_name)]
+            except KeyError:
+                pass
+            try:
+                del f['per_tumor/{}/{}_gene_set_name'.format(tumor, collection_name)]
+            except KeyError:
+                pass
 
-                f.create_dataset(
-                    score_key,
-                    data=cell_scores,
-                    compression='gzip'
-                )
-                f.create_dataset(
-                    set_key,
-                    data=np.array([
-                        x.encode('utf-8')
-                        for x in df_gsva.index
-                    ]),
-                    compression='gzip'
-                )
-            else:
-                print("No data written for tumor {}. Datasets '{}' and '{}' already present in HDF5 file.".format(
-                    tumor,
-                    score_key,
-                    set_key
-                ))
+            f['per_tumor/{}'.format(tumor)].create_dataset(
+                '{}_gsva'.format(collection_name),
+                data=cell_scores,
+                compression='gzip'
+            )
+            f['per_tumor/{}'.format(tumor)].create_dataset(
+                '{}_gene_set_name'.format(collection_name),
+                data=np.array([
+                    x.encode('utf-8')
+                    for x in df_gsva.index
+                ]),
+                compression='gzip'
+            )
 
 if __name__ == '__main__':
     main()

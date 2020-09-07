@@ -36,22 +36,21 @@ def main():
 
     the_tumors = set()
     with h5py.File(h5_f, 'r') as f:
-        for k in f.keys():
-            the_tumors.add(k.split('_')[0])
+        the_tumors = f['per_tumor'].keys()
         the_tumors = sorted(the_tumors)
     print(the_tumors)
 
     for tumor in the_tumors:
         print("Running algorithms on tumor {}".format(tumor))
         with h5py.File(h5_f, 'r') as f:
-            if not overwrite and '{}_umap_2'.format(tumor) in f.keys():
+            if not overwrite and 'umap_2'.format(tumor) in f['per_tumor/{}'.format(tumor)].keys():
                 print('Detected tumor {} already in data. Skipping running dimensionality reduction.'.format(tumor))
                 continue
             cells = [
                 str(x)[2:-1]
-                for x in f['{}_cell'.format(tumor)][:]
+                for x in f['per_tumor/{}/cell'.format(tumor)][:]
             ]
-            expression = f['{}_log1_tpm'.format(tumor)][:]
+            expression = f['per_tumor/{}/log1_tpm'.format(tumor)][:]
         
         ad = AnnData(
             X=expression,
@@ -65,38 +64,38 @@ def main():
 
         with h5py.File(h5_f, 'r+') as f:
             try:
-                del f['{}_umap_2'.format(tumor)]
+                del f['per_tumor/{}/umap_2'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_umap_2'.format(tumor),
+                'per_tumor/{}/umap_2'.format(tumor),
                 data=np.array(X_umap_2, dtype=np.float32),
                 compression="gzip"
             )
             try:
-                del f['{}_phate_2'.format(tumor)]
+                del f['per_tumor/{}/phate_2'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_phate_2'.format(tumor),
+                'per_tumor/{}/phate_2'.format(tumor),
                 data=np.array(X_phate_2, dtype=np.float32),
                 compression="gzip"
             )
             try:
-                del f['{}_umap_3'.format(tumor)]
+                del f['per_tumor/{}/umap_3'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_umap_3'.format(tumor),
+                'per_tumor/{}/umap_3'.format(tumor),
                 data=np.array(X_umap_3, dtype=np.float32),
                 compression="gzip"
             )
             try:
-                del f['{}_phate_3'.format(tumor)]
+                del f['per_tumor/{}/phate_3'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_phate_3'.format(tumor),
+                'per_tumor/{}/phate_3'.format(tumor),
                 data=np.array(X_phate_3, dtype=np.float32),
                 compression="gzip"
             )

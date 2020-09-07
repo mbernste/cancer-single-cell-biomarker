@@ -20,11 +20,11 @@ def hover_texts(tumor, cells):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         texts = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_hover_texts'.format(tumor)]
+            for x in f['per_tumor/{}/cell_type_hover_texts'.format(tumor)]
         ]
     df = pd.DataFrame(
         data={'hover_texts': texts},
@@ -37,9 +37,9 @@ def cell_type_probability_columns(tumor, min_prob=None):
     with h5py.File('../../charts.h5', 'r') as f:
         cols = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_probability_columns'.format(tumor)]
+            for x in f['per_tumor/{}/cell_type_probability_columns'.format(tumor)]
         ]
-        probs = f['{}_cell_type_probability'.format(tumor)][:]
+        probs = f['per_tumor/{}/cell_type_probability'.format(tumor)][:]
         mins = np.min(probs, axis=0) 
         df = pd.DataFrame(
             data={'probability': mins},
@@ -51,7 +51,7 @@ def hallmark_gene_sets(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cols = [
             str(x)[2:-1]
-            for x in f['{}_hallmark_gene_set_name'.format(tumor)]
+            for x in f['per_tumor/{}/hallmark_gene_set_name'.format(tumor)]
         ]
     return sorted(set(cols))
 
@@ -60,7 +60,7 @@ def cancersea_gene_sets(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cols = [
             str(x)[2:-1]
-            for x in f['{}_cancersea_gene_set_name'.format(tumor)]
+            for x in f['per_tumor/{}/cancersea_gene_set_name'.format(tumor)]
         ]
     return sorted(set(cols))
 
@@ -69,11 +69,11 @@ def load_tumor_cell_type_classifications(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         cell_types = [
             str(x)[2:-1]
-            for x in f['{}_predicted_cell_type'.format(tumor)]
+            for x in f['per_tumor/{}/predicted_cell_type'.format(tumor)]
         ]
     df = pd.DataFrame(
         data={
@@ -88,16 +88,16 @@ def load_tumor_clusters(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         return set([
             str(x)
-            for x in f['{}_cluster'.format(tumor)][:]
+            for x in f['per_tumor/{}/cluster'.format(tumor)][:]
         ])
 
 def load_tumor_clusters_for_cells(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
-        clusts = f['{}_cluster'.format(tumor)][:]
+        clusts = f['per_tumor/{}/cluster'.format(tumor)][:]
     df = pd.DataFrame(
         data={
             'cell': cells,
@@ -111,11 +111,11 @@ def load_tumor_gene(tumor, gene):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         gene_names = [
             str(x)[2:-1]
-            for x in f['{}_gene_name'.format(tumor)][:]
+            for x in f['per_tumor/{}/gene_name'.format(tumor)][:]
         ]
         gene_name_to_index = {
             gene_name: index
@@ -123,7 +123,7 @@ def load_tumor_gene(tumor, gene):
         }
         if gene in gene_name_to_index:
             index = gene_name_to_index[gene]
-            expressions = np.array(f['{}_log1_tpm'.format(tumor)][:,index])
+            expressions = np.array(f['per_tumor/{}/log1_tpm'.format(tumor)][:,index])
         else:
             expressions = np.zeros(len(cells))
     df = pd.DataFrame(
@@ -137,18 +137,18 @@ def load_tumor_cell_type_probabilities(tumor, cell_type):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         cell_types = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_probability_columns'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell_type_probability_columns'.format(tumor)][:]
         ]
         cell_type_to_index = {
             cell_type: index
             for index, cell_type in enumerate(cell_types)
         }
         index = cell_type_to_index[cell_type]
-        probabilities = np.array(f['{}_cell_type_probability'.format(tumor)][:,index])
+        probabilities = np.array(f['per_tumor/{}/cell_type_probability'.format(tumor)][:,index])
     df = pd.DataFrame(
         data={'color_by': probabilities},
         index=cells
@@ -160,18 +160,18 @@ def load_tumor_hallmark_enrichment(tumor, gene_set):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         gene_sets = [
             str(x)[2:-1]
-            for x in f['{}_hallmark_gene_set_name'.format(tumor)][:]
+            for x in f['per_tumor/{}/hallmark_gene_set_name'.format(tumor)][:]
         ]
         gene_set_to_index = {
             gene_set: index
             for index, gene_set in enumerate(gene_sets)
         }
         index = gene_set_to_index[gene_set]
-        scores = np.array(f['{}_hallmark_gsva'.format(tumor)][:,index])
+        scores = np.array(f['per_tumor/{}/hallmark_gsva'.format(tumor)][:,index])
     df = pd.DataFrame(
         data={'color_by': scores},
         index=cells
@@ -183,18 +183,18 @@ def load_tumor_cancersea_enrichment(tumor, gene_set):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
         gene_sets = [
             str(x)[2:-1]
-            for x in f['{}_cancersea_gene_set_name'.format(tumor)][:]
+            for x in f['per_tumor/{}/cancersea_gene_set_name'.format(tumor)][:]
         ]
         gene_set_to_index = {
             gene_set: index
             for index, gene_set in enumerate(gene_sets)
         }
         index = gene_set_to_index[gene_set]
-        scores = np.array(f['{}_cancersea_gsva'.format(tumor)][:,index])
+        scores = np.array(f['per_tumor/{}/cancersea_gsva'.format(tumor)][:,index])
     df = pd.DataFrame(
         data={'color_by': scores},
         index=cells
@@ -206,9 +206,9 @@ def load_malignancy_score(tumor):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
-        scores = np.array(f['{}_malignancy_score'.format(tumor)][:])
+        scores = np.array(f['per_tumor/{}/malignancy_score'.format(tumor)][:])
     df = pd.DataFrame(
         data={'color_by': scores},
         index=cells
@@ -233,11 +233,11 @@ def load_color_by_real_value_mult_tumors(
         # Load data for first tumor
         cells_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_1)][:]
         ]
         cols_1 = [
             str(x)[2:-1]
-            for x in f['{}_{}'.format(tum_1, col_suffix)][:]
+            for x in f['per_tumor/{}/{}'.format(tum_1, col_suffix)][:]
         ]
         col_to_index_1 = {
             col: index
@@ -245,7 +245,7 @@ def load_color_by_real_value_mult_tumors(
         }
         if feat in col_to_index_1:
             index = col_to_index_1[feat]
-            key = '{}_{}'.format(tum_1, data_suffix)
+            key = 'per_tumor/{}/{}'.format(tum_1, data_suffix)
             vals_1 = np.array(f[key][:,index])
         else:
             vals_1 = np.zeros(len(cells_1))
@@ -256,11 +256,11 @@ def load_color_by_real_value_mult_tumors(
         # Load data for second tumor
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
         cols_2 = [
             str(x)[2:-1]
-            for x in f['{}_{}'.format(tum_2, col_suffix)][:]
+            for x in f['per_tumor/{}/{}'.format(tum_2, col_suffix)][:]
         ]
         col_to_index_2 = {
             col: index
@@ -268,7 +268,7 @@ def load_color_by_real_value_mult_tumors(
         }
         if feat in col_to_index_2:
             index = col_to_index_2[feat]
-            vals_2 = np.array(f['{}_{}'.format(tum_2, data_suffix)][:,index])
+            vals_2 = np.array(f['per_tumor/{}/{}'.format(tum_2, data_suffix)][:,index])
         else:
             vals_2 = np.zeros(len(cells_2))
         df_2 = pd.DataFrame(
@@ -287,7 +287,7 @@ def load_malignancy_score_mult_tumors(tum_1, tum_2, cells):
             str(x)[2:-1]
             for x in f['{}_cell'.format(tum_1)][:]
         ]
-        key = '{}_malignancy_score'.format(tum_1)
+        key = 'per_tumor/{}/malignancy_score'.format(tum_1)
         vals_1 = np.array(f[key][:])
         df_1 = pd.DataFrame(
             data={'color_by': vals_1},
@@ -296,9 +296,9 @@ def load_malignancy_score_mult_tumors(tum_1, tum_2, cells):
         # Load data for second tumor
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
-        key = '{}_malignancy_score'.format(tum_2)
+        key = 'per_tumor/{}/malignancy_score'.format(tum_2)
         vals_2 = np.array(f[key][:])
         df_2 = pd.DataFrame(
             data={'color_by': vals_2},
@@ -318,11 +318,11 @@ def load_cell_type_classifications_mult_tumors(
     with h5py.File('../../charts.h5', 'r') as f:
         cells_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_1)][:]
         ]
         cell_types_1 = [
             str(x)[2:-1]
-            for x in f['{}_predicted_cell_type'.format(tum_1)][:]
+            for x in f['per_tumor/{}/predicted_cell_type'.format(tum_1)][:]
         ]
         df_1 = pd.DataFrame(
             data={'color_by': cell_types_1},
@@ -331,11 +331,11 @@ def load_cell_type_classifications_mult_tumors(
 
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
         cell_types_2 = [
             str(x)[2:-1]
-            for x in f['{}_predicted_cell_type'.format(tum_2)][:]
+            for x in f['per_tumor/{}/predicted_cell_type'.format(tum_2)][:]
         ]
         df_2 = pd.DataFrame(
             data={'color_by': cell_types_2},
@@ -355,11 +355,11 @@ def load_hover_texts_mult_tumors(
     with h5py.File('../../charts.h5', 'r') as f:
         cells_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_1)][:]
         ]
         texts_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_hover_texts'.format(tum_1)]
+            for x in f['per_tumor/{}/cell_type_hover_texts'.format(tum_1)]
         ]
         df_1 = pd.DataFrame(
             data={'hover_texts': texts_1},
@@ -368,11 +368,11 @@ def load_hover_texts_mult_tumors(
 
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
         texts_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell_type_hover_texts'.format(tum_2)]
+            for x in f['per_tumor/{}/cell_type_hover_texts'.format(tum_2)]
         ]
         df_2 = pd.DataFrame(
             data={'hover_texts': texts_2},
@@ -392,11 +392,11 @@ def load_clusters_mult_tumors(
     with h5py.File('../../charts.h5', 'r') as f:
         cells_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_1)][:]
         ]
         clusters_1 = [
             '{}_{}'.format(tum_1, x)
-            for x in f['{}_cluster'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cluster'.format(tum_1)][:]
         ]
         df_1 = pd.DataFrame(
             data={'color_by': clusters_1},
@@ -405,11 +405,11 @@ def load_clusters_mult_tumors(
 
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
         clusters_2 = [
             '{}_{}'.format(tum_2, x)
-            for x in f['{}_cluster'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cluster'.format(tum_2)][:]
         ]
         df_2 = pd.DataFrame(
             data={'color_by': clusters_2},
@@ -425,11 +425,11 @@ def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
     with h5py.File('../../charts.h5', 'r') as f:
         cells_1 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_1)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_1)][:]
         ]
         tumors_1 = [
             str(x)[2:-1]
-            for x in f['{}_tumor'.format(tum_1)][:]
+            for x in f['per_tumor/{}/tumor'.format(tum_1)][:]
         ]
         df_1 = pd.DataFrame(
             data={'color_by': tumors_1},
@@ -438,11 +438,11 @@ def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
 
         cells_2 = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tum_2)][:]
+            for x in f['per_tumor/{}/cell'.format(tum_2)][:]
         ]
         tumors_2 = [
             str(x)[2:-1]
-            for x in f['{}_tumor'.format(tum_2)][:]
+            for x in f['per_tumor/{}/tumor'.format(tum_2)][:]
         ]
         df_2 = pd.DataFrame(
             data={'color_by': tumors_2},
@@ -456,9 +456,9 @@ def load_tumor_phate(tumor, num_dims):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
-        X_umap = f['{}_phate_{}'.format(tumor, num_dims)][:]
+        X_umap = f['per_tumor/{}/phate_{}'.format(tumor, num_dims)][:]
     df = pd.DataFrame(
         data=X_umap,
         index=cells,
@@ -470,9 +470,9 @@ def load_tumor_umap(tumor, num_dims):
     with h5py.File('../../charts.h5', 'r') as f:
         cells = [
             str(x)[2:-1]
-            for x in f['{}_cell'.format(tumor)][:]
+            for x in f['per_tumor/{}/cell'.format(tumor)][:]
         ]
-        X_umap = f['{}_umap_{}'.format(tumor, num_dims)][:]
+        X_umap = f['per_tumor/{}/umap_{}'.format(tumor, num_dims)][:]
     df = pd.DataFrame(
         data=X_umap,
         index=cells,

@@ -28,15 +28,13 @@ def main():
 
     the_tumors = set()
     with h5py.File(h5_f, 'r') as f:
-        for k in f.keys():
-            the_tumors.add(k.split('_')[0])
-        # The symbol '&' indicates it is an integrated dataset
-        the_tumors = sorted([x for x in the_tumors if '&' not in x])
+        the_tumors = f['per_tumor'].keys()
+        the_tumors = sorted(the_tumors)
         if not overwrite:
             the_tumors = [
                 tumor
                 for tumor in the_tumors 
-                if '{}_predicted_cell_type'.format(tumor) not in f.keys()
+                if 'predicted_cell_type' not in f['per_tumor/{}'.format(tumor)].keys()
             ]
     print(the_tumors)
 
@@ -45,20 +43,20 @@ def main():
         with h5py.File(h5_f, 'r') as f:
             cells = [
                 str(x)[2:-1]
-                for x in f['{}_cell'.format(tumor)][:]
+                for x in f['per_tumor/{}/cell'.format(tumor)][:]
             ]
-            if '{}_gene_id'.format(tumor) in f.keys():
+            if 'gene_id' in f['per_tumor/{}'.format(tumor)].keys():
                 genes = [
                     str(x)[2:-1]
-                    for x in f['{}_gene_id'.format(tumor)][:]
+                    for x in f['per_tumor/{}/gene_id'.format(tumor)][:]
                 ]
             else:
                 genes = [
                     str(x)[2:-1]
-                    for x in f['{}_gene_name'.format(tumor)][:]
+                    for x in f['per_tumor/{}/gene_name'.format(tumor)][:]
                 ]
-            expression = f['{}_log1_tpm'.format(tumor)][:]
-            clusters = f['{}_cluster'.format(tumor)][:]
+            expression = f['per_tumor/{}/log1_tpm'.format(tumor)][:]
+            clusters = f['per_tumor/{}/cluster'.format(tumor)][:]
 
         # Create expression AnnData object
         ad = AnnData(
@@ -90,7 +88,7 @@ def main():
             mod,
             assay='3_PRIME',
             algo='IR',
-            cell_to_cluster=None
+            cell_to_cluster=cell_to_cluster
         )
 
         results_df.columns = [
@@ -149,39 +147,39 @@ def main():
 
         with h5py.File(h5_f, 'r+') as f:
             try:
-                del f['{}_predicted_cell_type'.format(tumor)]
+                del f['per_tumor/{}/predicted_cell_type'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_predicted_cell_type'.format(tumor),
+                'per_tumor/{}/predicted_cell_type'.format(tumor),
                 data=cell_types_predicted,
                 compression="gzip"
             )
             try:
-                del f['{}_cell_type_probability'.format(tumor)]
+                del f['per_tumor/{}/cell_type_probability'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_cell_type_probability'.format(tumor),
+                'per_tumor/{}/cell_type_probability'.format(tumor),
                 data=cell_type_probs,
                 compression="gzip"
             )
             try:
-                del f['{}_cell_type_probability_columns'.format(tumor)]
+                del f['per_tumor/{}/cell_type_probability_columns'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_cell_type_probability_columns'.format(tumor),
+                'per_tumor/{}/cell_type_probability_columns'.format(tumor),
                 data=cell_type_prob_columns,
                 compression="gzip"
             )
 
             try:
-                del f['{}_cell_type_hover_texts'.format(tumor)]
+                del f['per_tumor/{}/cell_type_hover_texts'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_cell_type_hover_texts'.format(tumor),
+                'per_tumor/{}/cell_type_hover_texts'.format(tumor),
                 data=hover_texts,
                 compression="gzip"
             )

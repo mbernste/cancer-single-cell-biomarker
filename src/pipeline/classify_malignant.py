@@ -74,7 +74,7 @@ def main():
     gene_ids_present = set()
     with h5py.File(h5_f, 'r') as f:
         for tumor in tumor_set:
-            if '{}_gene_id'.format(tumor) in f.keys():
+            if 'gene_id' in f['per_tumor/{}'.format(tumor)].keys():
                 gene_ids_present.add(True)
             else:
                 gene_ids_present.add(False)
@@ -95,12 +95,12 @@ def main():
         for tumor in tumor_set:
             cells = [
                 str(x)[2:-1]
-                for x in f['{}_cell'.format(tumor)][:]
+                for x in f['per_tumor/{}/cell'.format(tumor)][:]
             ]
-            if '{}_gene_id'.format(tumor) in f.keys():
+            if 'gene_id' in f['per_tumor/{}'.format(tumor)].keys():
                 genes = [
                     str(x)[2:-1]
-                    for x in f['{}_gene_id'.format(tumor)][:]
+                    for x in f['per_tumor/{}/gene_id'.format(tumor)][:]
                 ]
                 if '.' in genes[0]:
                     print("Detected gene versions. Removing versions...")
@@ -111,9 +111,9 @@ def main():
             else:
                 genes = [
                     str(x)[2:-1]
-                    for x in f['{}_gene_name'.format(tumor)][:]
+                    for x in f['per_tumor/{}/gene_name'.format(tumor)][:]
                 ]
-            expression = f['{}_log1_tpm'.format(tumor)][:]
+            expression = f['per_tumor/{}/log1_tpm'.format(tumor)][:]
             df = pd.DataFrame(
                 data=expression,
                 index=cells,
@@ -246,7 +246,7 @@ def main():
 
     with h5py.File(h5_f, 'r+') as f:
         for tumor in tumor_set:
-            key = '{}_malignancy_score'.format(tumor)
+            key = 'per_tumor/{}/malignancy_score'.format(tumor)
             scores = tumor_to_scores[tumor]
             if key not in f.keys():
                 f.create_dataset(

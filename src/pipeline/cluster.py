@@ -45,18 +45,15 @@ def main():
     
     the_tumors = set()
     with h5py.File(h5_f, 'r') as f:
-        for k in f.keys():
-            the_tumors.add(k.split('_')[0])
-        # The symbol '&' indicates it is an integrated dataset
-        the_tumors = sorted([x for x in the_tumors if '&' not in x])
-
+        the_tumors = f['per_tumor'].keys()
+        the_tumors = sorted(the_tumors)
     print(the_tumors)
 
     for tumor in the_tumors:
         # Determine whether to cluster this tumor or not
         if not overwrite:
             with h5py.File(h5_f, 'r') as f:
-                if '{}_cluster'.format(tumor) in f.keys():
+                if 'cluster' in f['per_tumor/{}'.format(tumor)].keys():
                     print('Found tumor {} in the database. Skipping clustering.'.format(tumor))
                     continue
 
@@ -64,9 +61,9 @@ def main():
         with h5py.File(h5_f, 'r') as f:
             cells = [
                 str(x)[2:-1]
-                for x in f['{}_cell'.format(tumor)][:]
+                for x in f['per_tumor/{}/cell'.format(tumor)][:]
             ]
-            expression = f['{}_log1_tpm'.format(tumor)][:]
+            expression = f['per_tumor/{}/log1_tpm'.format(tumor)][:]
         ad = AnnData(
             X=expression, 
             obs=pd.DataFrame(data=cells, columns=['cell'], index=cells)
@@ -80,11 +77,11 @@ def main():
         
         with h5py.File(h5_f, 'r+') as f:
             try:
-                del f['{}_cluster'.format(tumor)]
+                del f['per_tumor/{}/cluster'.format(tumor)]
             except KeyError:
                 pass
             f.create_dataset(
-                '{}_cluster'.format(tumor), 
+                'per_tumor/{}/cluster'.format(tumor), 
                 data=np.array(clusters, dtype=np.int32), 
                 compression="gzip"
             )

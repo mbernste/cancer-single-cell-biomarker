@@ -57,6 +57,33 @@ def build_hallmark_enrichment_dropdown_mult_tumors(tum_1, tum_2, html_id):
         id=html_id
     )
 
+def build_cancersea_enrichment_dropdown(tumor, html_id):
+    gene_sets = load_data.cancersea_gene_sets(tumor)
+    options = [
+        {'label': gene_set, 'value': gene_set}
+        for gene_set in sorted(gene_sets)
+    ]
+    return dcc.Dropdown(
+        options=options,
+        value='Hypoxia',
+        id=html_id
+    )
+
+def build_cancersea_enrichment_dropdown_mult_tumors(tum_1, tum_2, html_id):
+    gene_sets_1 = set(load_data.cancersea_gene_sets(tum_1))
+    gene_sets_2 = set(load_data.cancersea_gene_sets(tum_2))
+    all_gene_sets = gene_sets_1 | gene_sets_2
+    options = [
+        {'label': gene_set, 'value': gene_set}
+        for gene_set in sorted(all_gene_sets)
+    ]
+    return dcc.Dropdown(
+        options=options,
+        value='Hypoxia',
+        id=html_id
+    )
+
+
 def build_tumor_dropdown(html_id, width=None):
     options=[
         {'label': 'PJ016 (glioma)', 'value': 'PJ016'},
@@ -75,27 +102,57 @@ def build_tumor_dropdown(html_id, width=None):
         {'label': 'LX680 (lung adenocarcinoma)', 'value': 'LX680'},
         {'label': 'LX682 (lung adenocarcinoma)', 'value': 'LX682'},
         {'label': 'LX684 (lung adenocarcinoma)', 'value': 'LX684'},
-        {'label': 'PJ016 + PJ018', 'value': 'PJ016&PJ018'},
-        {'label': 'PJ016 + PJ017', 'value': 'PJ016&PJ017'},
-        {'label': 'PJ016 + PJ025', 'value': 'PJ016&PJ025'},
-        {'label': 'PJ017 + PJ018', 'value': 'PJ017&PJ018'},
-        {'label': 'PJ017 + PJ025', 'value': 'PJ017&PJ025'},
-        {'label': 'PJ018 + PJ025', 'value': 'PJ018&PJ025'},
-        {'label': 'PJ016 + LX653', 'value': 'PJ016&LX653'},
-        {'label': 'PJ016 + LX676', 'value': 'PJ016&LX676'},
-        {'label': 'PJ016 + LX682', 'value': 'PJ016&LX682'},
-        {'label': 'PJ017 + LX653', 'value': 'PJ017&LX653'},
-        {'label': 'PJ017 + LX676', 'value': 'PJ017&LX676'},
-        {'label': 'PJ017 + LX682', 'value': 'PJ017&LX682'},
-        {'label': 'PJ018 + LX653', 'value': 'PJ018&LX653'},
-        {'label': 'PJ018 + LX676', 'value': 'PJ018&LX676'},
-        {'label': 'PJ018 + LX682', 'value': 'PJ018&LX682'},
-        {'label': 'PJ025 + LX653', 'value': 'PJ025&LX653'},
-        {'label': 'PJ025 + LX676', 'value': 'PJ025&LX676'},
-        {'label': 'PJ025 + LX682', 'value': 'PJ025&LX682'},
-        {'label': 'LX653 + LX676', 'value': 'LX653&LX676'},
-        {'label': 'LX653 + LX682', 'value': 'LX653&LX682'},
-        {'label': 'LX676 + LX682', 'value': 'LX676&LX682'}
+        {'label': 'GSE146026.1 (ovarian)', 'value': 'GSE146026.1'}, 
+        {'label': 'GSE146026.2 (ovarian)', 'value': 'GSE146026.2'},
+        {'label': 'GSE146026.3 (ovarian)', 'value': 'GSE146026.3'},
+        {'label': 'GSE146026.4 (ovarian)', 'value': 'GSE146026.4'},
+        {'label': 'GSE146026.5 (ovarian)', 'value': 'GSE146026.5'},
+        {'label': 'GSE146026.6 (ovarian)', 'value': 'GSE146026.6'},
+        {'label': 'GSE72056.58 (melanoma)', 'value': 'GSE72056.58'},
+        {'label': 'GSE72056.59 (melanoma)', 'value': 'GSE72056.59'},
+        {'label': 'GSE72056.60 (melanoma)', 'value': 'GSE72056.60'},
+        {'label': 'GSE72056.65 (melanoma)', 'value': 'GSE72056.65'},
+        {'label': 'GSE72056.67 (melanoma)', 'value': 'GSE72056.67'},
+        {'label': 'GSE72056.71 (melanoma)', 'value': 'GSE72056.71'},
+        {'label': 'GSE72056.72 (melanoma)', 'value': 'GSE72056.72'},
+        {'label': 'GSE72056.74 (melanoma)', 'value': 'GSE72056.74'},
+        {'label': 'GSE72056.75 (melanoma)', 'value': 'GSE72056.75'},
+        {'label': 'GSE72056.78 (melanoma)', 'value': 'GSE72056.78'},
+        {'label': 'GSE72056.79 (melanoma)', 'value': 'GSE72056.79'},
+        {'label': 'GSE72056.80 (melanoma)', 'value': 'GSE72056.80'},
+        {'label': 'GSE72056.81 (melanoma)', 'value': 'GSE72056.81'},
+        {'label': 'GSE72056.82 (melanoma)', 'value': 'GSE72056.82'},
+        {'label': 'GSE72056.84 (melanoma)', 'value': 'GSE72056.84'},
+        {'label': 'GSE72056.88 (melanoma)', 'value': 'GSE72056.88'},
+        {'label': 'GSE72056.89 (melanoma)', 'value': 'GSE72056.89'},
+        {'label': 'GSE72056.94 (melanoma)', 'value': 'GSE72056.94'}
+#        {'label': 'PJ016 + PJ018', 'value': 'PJ016&PJ018'},
+#        {'label': 'PJ016 + PJ017', 'value': 'PJ016&PJ017'},
+#        {'label': 'PJ016 + PJ025', 'value': 'PJ016&PJ025'},
+#        {'label': 'PJ017 + PJ018', 'value': 'PJ017&PJ018'},
+#        {'label': 'PJ017 + PJ025', 'value': 'PJ017&PJ025'},
+#        {'label': 'PJ018 + PJ025', 'value': 'PJ018&PJ025'},
+#        {'label': 'PJ016 + LX653', 'value': 'PJ016&LX653'},
+#        {'label': 'PJ016 + LX676', 'value': 'PJ016&LX676'},
+#        {'label': 'PJ016 + LX682', 'value': 'PJ016&LX682'},
+#        {'label': 'PJ016 + GSE146026.5', 'value': 'PJ016&GSE146026.5'},
+#        {'label': 'PJ017 + LX653', 'value': 'PJ017&LX653'},
+#        {'label': 'PJ017 + LX676', 'value': 'PJ017&LX676'},
+#        {'label': 'PJ017 + LX682', 'value': 'PJ017&LX682'},
+#        {'label': 'PJ017 + GSE146026.5', 'value': 'PJ017&GSE146026.5'},
+#        {'label': 'PJ018 + LX653', 'value': 'PJ018&LX653'},
+#        {'label': 'PJ018 + LX676', 'value': 'PJ018&LX676'},
+#        {'label': 'PJ018 + LX682', 'value': 'PJ018&LX682'},
+#        {'label': 'PJ018 + GSE146026.5', 'value': 'PJ018&GSE146026.5'},
+#        {'label': 'PJ025 + LX653', 'value': 'PJ025&LX653'},
+#        {'label': 'PJ025 + LX676', 'value': 'PJ025&LX676'},
+#        {'label': 'PJ025 + LX682', 'value': 'PJ025&LX682'},
+#        {'label': 'PJ025 + GSE146026.5', 'value': 'PJ025&GSE146026.5'},
+#        {'label': 'LX653 + LX676', 'value': 'LX653&LX676'},
+#        {'label': 'LX653 + LX682', 'value': 'LX653&LX682'},
+#        {'label': 'LX653 + GSE146026.5', 'value': 'LX653&GSE146026.5'},
+#        {'label': 'LX676 + LX682', 'value': 'LX676&LX682'},
+#        {'label': 'LX676 + GSE146026.5', 'value': 'LX676&GSE146026.5'}
     ]
     if width:
         style={"width": width}
