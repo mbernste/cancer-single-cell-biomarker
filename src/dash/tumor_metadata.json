@@ -78,7 +78,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1A",
-        "genomic_alteration": "Mutated genes: EGFR, KMT2D, U2AF1, RET"    
+        "genomic_alteration": "EGFR, KMT2D, U2AF1, RET"    
     },
     "LX661": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -87,7 +87,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1A",
-        "genomic_alteration": "Mutated genes: EGFR, TP53"
+        "genomic_alteration": "EGFR, TP53"
     },
     "LX675": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -96,7 +96,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "4",
-        "genomic_alteration": "Mutated genes: EGFR"
+        "genomic_alteration": "EGFR"
     },
     "LX676": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -114,7 +114,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "2A",
-        "genomic_alteration": "Mutated genes: KRAS"
+        "genomic_alteration": "KRAS"
     },
     "LX680": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -123,7 +123,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1B",
-        "genomic_alteration": "Mutated genes: TP53"
+        "genomic_alteration": "TP53"
     },
     "LX682": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -132,7 +132,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1B",
-        "genomic_alteration": "Mutated genes: KRAS"
+        "genomic_alteration": "KRAS"
     },
     "LX684": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -141,7 +141,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1A",
-        "genomic_alteration": "Mutated genes: KRAS"
+        "genomic_alteration": "KRAS"
     },
     "LX684": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32042191/",
@@ -150,7 +150,7 @@
         "cancer_type": "lung adenocarcinoma",
         "grade": "unknown",
         "stage": "1A",
-        "genomic_alteration": "Mutated genes: KRAS"
+        "genomic_alteration": "KRAS"
     },
     "GSE146026.1": {
         "pub_url": "https://pubmed.ncbi.nlm.nih.gov/32572264/",
@@ -395,5 +395,185 @@
         "grade": "uknown",
         "stage": "unknown",
         "genomic_alteration": "BRAF wild-type, NRAS wild-type"
+    },
+    "GSE103322.5": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "69",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T2N1",
+        "genomic_alteration": "TP53, TERT promoter, PIK3CA"
+    },
+    "GSE103322.6": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "88",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "1",
+        "stage": "T4aN2c",
+        "genomic_alteration": "TP53"
+    },
+    "GSE103322.7": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "71",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "3",
+        "stage": "T1N2b",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.8": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "82",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "1",
+        "stage": "T4aN0",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.9": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "77",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T1N0",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.10": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "76",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T4aN2b",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.12": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "80",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T4aN0",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.13": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "52",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T3N1",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.16": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "63",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "1",
+        "stage": "T2N0",
+        "genomic_alteration": "TERT promoter"
+    },
+    "GSE103322.17": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "59",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T4aN0",
+        "genomic_alteration": "TERT promoter"
+    },
+    "GSE103322.18": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "41",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T3N1",
+        "genomic_alteration": "TP53, PIK3CA"
+    },
+    "GSE103322.20": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "53",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T4aN2c",
+        "genomic_alteration": "TP53, CDKN2A, NOTCH1"
+    },
+    "GSE103322.22": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "77",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T1N0",
+        "genomic_alteration": "TP53, TERT promoter, CDKN2A"
+    },
+    "GSE103322.23": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "56",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T3N1",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.24": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "78",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T4aN2c",
+        "genomic_alteration": "unknown"
+    },
+    "GSE103322.25": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "76",
+        "sex": "female",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "2",
+        "stage": "T3N1",
+        "genomic_alteration": "TP53, TERT promoter, FAT1, CDKN2A"
+    },
+    "GSE103322.26": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "51",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "3",
+        "stage": "T4aN2c",
+        "genomic_alteration": "TP53"
+    },
+    "GSE103322.28": {
+        "pub_url": "https://pubmed.ncbi.nlm.nih.gov/29198524/",
+        "pub_name": "Puram et al. (2017)",
+        "age": "58",
+        "sex": "male",
+        "cancer_type": "head and neck squamous cell carcinoma",
+        "grade": "1",
+        "stage": "T2N2c",
+        "genomic_alteration": "TERT promoter, NOTCH1"
     }
 }
