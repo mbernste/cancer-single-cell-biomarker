@@ -4,20 +4,25 @@ import numpy as np
 import json
 
 
+with open('config.json', 'r') as f:
+    config = json.load(f)
+    DB_LOC = config['db_loc']
+
+
 def get_tumor_meta(tumor):
     with open('tumor_metadata.json', 'r') as f:
         j = json.load(f)
     return j[tumor]
 
 def load_tumor_gene_names(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         return set([
             str(x)[2:-1]
             for x in f['{}_gene_name'.format(tumor)][:]
         ])
 
 def hover_texts(tumor, cells):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -34,7 +39,7 @@ def hover_texts(tumor, cells):
     return list(df['hover_texts'])     
 
 def cell_type_probability_columns(tumor, min_prob=None):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cols = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell_type_probability_columns'.format(tumor)]
@@ -48,7 +53,7 @@ def cell_type_probability_columns(tumor, min_prob=None):
         return set(df.loc[df['probability'] > min_prob].index)
 
 def hallmark_gene_sets(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cols = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/hallmark_gene_set_name'.format(tumor)]
@@ -57,7 +62,7 @@ def hallmark_gene_sets(tumor):
 
 
 def cancersea_gene_sets(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cols = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cancersea_gene_set_name'.format(tumor)]
@@ -66,7 +71,7 @@ def cancersea_gene_sets(tumor):
 
 
 def load_tumor_cell_type_classifications(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -85,14 +90,14 @@ def load_tumor_cell_type_classifications(tumor):
     return df
 
 def load_tumor_clusters(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         return set([
             str(x)
             for x in f['per_tumor/{}/cluster'.format(tumor)][:]
         ])
 
 def load_tumor_clusters_for_cells(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -108,7 +113,7 @@ def load_tumor_clusters_for_cells(tumor):
     return df
 
 def load_tumor_gene(tumor, gene):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -134,7 +139,7 @@ def load_tumor_gene(tumor, gene):
 
 
 def load_tumor_cell_type_probabilities(tumor, cell_type):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -157,7 +162,7 @@ def load_tumor_cell_type_probabilities(tumor, cell_type):
 
 
 def load_tumor_hallmark_enrichment(tumor, gene_set):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -180,7 +185,7 @@ def load_tumor_hallmark_enrichment(tumor, gene_set):
 
 
 def load_tumor_cancersea_enrichment(tumor, gene_set):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -203,7 +208,7 @@ def load_tumor_cancersea_enrichment(tumor, gene_set):
 
 
 def load_malignancy_score(tumor):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -229,7 +234,7 @@ def load_color_by_real_value_mult_tumors(
     plot using real-valued features such as gene expression or cell type
     probability.
     """
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         # Load data for first tumor
         cells_1 = [
             str(x)[2:-1]
@@ -281,7 +286,7 @@ def load_color_by_real_value_mult_tumors(
         return df
 
 def load_malignancy_score_mult_tumors(tum_1, tum_2, cells):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         # Load data for first tumor
         cells_1 = [
             str(x)[2:-1]
@@ -315,7 +320,7 @@ def load_cell_type_classifications_mult_tumors(
         tum_2,
         cells
     ):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells_1 = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tum_1)][:]
@@ -352,7 +357,7 @@ def load_hover_texts_mult_tumors(
         tum_2,
         cells
     ):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells_1 = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tum_1)][:]
@@ -389,7 +394,7 @@ def load_clusters_mult_tumors(
         tum_2,
         cells
     ):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells_1 = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tum_1)][:]
@@ -422,7 +427,7 @@ def load_clusters_mult_tumors(
 
 
 def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells_1 = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tum_1)][:]
@@ -452,8 +457,9 @@ def load_tumors_for_cells_mult_tumors(tum_1, tum_2, cells):
         df = df.loc[cells]
         return df
 
+
 def load_tumor_phate(tumor, num_dims):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -466,8 +472,9 @@ def load_tumor_phate(tumor, num_dims):
     )
     return df
 
+
 def load_tumor_umap(tumor, num_dims):
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cells = [
             str(x)[2:-1]
             for x in f['per_tumor/{}/cell'.format(tumor)][:]
@@ -480,8 +487,9 @@ def load_tumor_umap(tumor, num_dims):
     )
     return df
 
+
 def load_gsva_compare_cluster():
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         cols = [
             ' '.join(str(x)[2:-1].split('_')[1:]).lower()
             for x in f['gsva_compare_cluster_gene_set_name'][:]
@@ -502,7 +510,7 @@ def load_gsva_compare_cluster():
 
 def load_de(tumor, cluster):
     tum_clust = '{}_{}'.format(tumor, cluster)
-    with h5py.File('../../charts.h5', 'r') as f:
+    with h5py.File(DB_LOC, 'r') as f:
         genes = [
             str(x)[2:-1]
             for x in f['de/{}/gene'.format(tum_clust)][:]
