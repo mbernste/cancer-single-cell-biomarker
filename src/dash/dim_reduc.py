@@ -13,7 +13,7 @@ import common
 
 SCATTER_HEIGHT = '550px'
 
-FIG_DIM = 600
+FIG_DIM = 500
 
 # Default settings
 DEFAULT_NUM_DIM = 2
@@ -75,6 +75,42 @@ PALETTE = [
     "#6ecb3c", #  apple
     "#c45508", #  rust orange
     "#8756e4", #  purpley
+    "#8756e4", #  diarrhea
+    "#bcecac", #  light sage
+    "#5d1451", #  grape purple
+    "#028f1e", #  emerald green
+    "#ffa62b", #  mango
+    "#3a2efe", #  light royal blue
+    "#c0022f", #  lipstick red
+    "#0485d1", #  cerulean
+    "#a57e52", #  puce
+    "#380835", #  eggplant
+    "#a9f971", #  spring green
+    "#fe4b03", #  blood orange
+    "#8cff9e", #  baby green
+    "#86775f", #  brownish grey
+    "#9d0759", #  dark fuchsia
+    "#665fd1", #  dark periwinkle
+    "#49759c", #  dullblue
+    "#fffa86", #  manilla
+    "#280137", #  midnight purple
+    "#fa4224", #  orangey red
+    "#d99b82", #  pinkish tan
+    "#152eff", #  vivid blue
+    "#f2ab15", #  squash
+    "#70b23f", #  nasty green
+    "#952e8f", #  warm purple
+    "#bcf5a6", #  washed out green
+    "#9a6200", #  raw sienna
+    "#fb5ffc", #  violet pink
+    "#ddd618", #  piss yellow
+    "#fe420f", #  orangered
+    "#c27e79", #  brownish pink
+    "#adf802", #  lemon green
+    "#29465b", #  dark grey blue
+    "#48c072", #  dark mint
+    "#edc8ff"  #  light lilac
+
 ]
 
 TUMOR_INFO_TEMPLATE = """
@@ -645,14 +681,16 @@ def _build_control_panel(plot_num):
         ])
     ]
 
-def dim_reduc():
+def build_layout():
     layout = dcc.Tab(
         label='Dimension Reduction',
         children=[
+            dbc.Row(html.Hr(), style={'height': '3%'}),
+            html.Div(['Compare tumors and subpopulations via dimension reduction scatterplots. For each plot, select a tumor as well as an attribute used to color each tumor.']),
             dbc.Container(fluid=True, children=[
                 dbc.Row(html.Hr(), style={'height': '1%'}),
                 dbc.Row(children=[
-                    dbc.Col(width=100, style={'width': '1%'}),
+                    #dbc.Col(width=100, style={'width': '1%'}),
                     dbc.Row(
                         [
                             dbc.Card(
@@ -671,7 +709,16 @@ def dim_reduc():
                                         + [
                                             dbc.Row(html.Hr(), style={'height': '3%'}),
                                             html.Div(["Tumor Information:"]),
-                                            html.Div([html.Iframe(srcDoc='Hi there', id='msg-box-1', style={"width": "100%", "border": "0", "height": "80px"})], style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}),
+                                            html.Div(
+                                                [
+                                                    html.Iframe(
+                                                        srcDoc="", 
+                                                        id='msg-box-1', 
+                                                        style={"width": "100%", "border": "0", "height": "80px"}
+                                                    )
+                                                ], 
+                                                style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}
+                                            ),
                                             dbc.Row(html.Hr(), style={'height': '3%'}),
                                             dcc.Graph(
                                                 id='dim-reduc-scatter-1',
@@ -722,7 +769,16 @@ def dim_reduc():
                                         + [
                                             dbc.Row(html.Hr(), style={'height': '3%'}),
                                             html.Div(["Tumor Information:"]),
-                                            html.Div([html.Iframe(srcDoc='Hi there', id='msg-box-2', style={"width": "100%", "border": "0", "height": "80px"})], style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}),
+                                            html.Div(
+                                                [
+                                                    html.Iframe(
+                                                        srcDoc="", 
+                                                        id='msg-box-2', 
+                                                        style={"width": "100%", "border": "0", "height": "80px"}
+                                                    )
+                                                ], 
+                                                style={"margin": "3px", 'border-style': 'dotted', 'border-width': 'thin'}
+                                            ),
                                             dbc.Row(html.Hr(), style={'height': '3%'}),
                                             dcc.Graph(
                                                 id='dim-reduc-scatter-2',
@@ -757,7 +813,7 @@ def dim_reduc():
                                 #width={"size": "auto", "order": 1}
                             )
                         ], 
-                        style={"width": "80%"}
+                        #style={"width": "80%"}
                     )
                 ])
             ])

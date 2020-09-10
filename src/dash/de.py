@@ -93,9 +93,9 @@ def build_layout():
     layout = dcc.Tab(
         label='Differential Expression',
         children=[
-            dbc.Row(html.Hr(), style={'height': '0.5%'}),
+            dbc.Row(html.Hr(), style={'height': '3%'})
             html.Div(['Compare differentially expressed genes between tumor sub-clusters of cells.']),
-            dbc.Row(html.Hr(), style={'height': '0.5%'}),
+            dbc.Row(html.Hr(), style={'height': '3%'})
             dbc.Row([
                 dbc.Col([
                     dbc.CardHeader(
